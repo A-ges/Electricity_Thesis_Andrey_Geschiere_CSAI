@@ -1,8 +1,10 @@
 import random
 import math
-
+#json and string used for bottom section of file
+import json
+from string import ascii_lowercase
 """
-This code contains the make network function
+This code contains the make network function and the algorithm used to make the network.json file.
 It generates a heterogeneous clustered network for using the approach from House (2014)
 The Claude LLM has been used to make sense of the paper and lay down this approach through pseudocode
 """
@@ -213,81 +215,50 @@ def make_network(agents, link_density=0.08, degree_heterogeneity=1.5, clustering
             network[filler].append(agent)
     return network
 
-import collections
+def generate_predefined_networks(agent_sizes, n_variants, output_file="networks.json"):
+    """
+    Generate multiple networks for different agent sizes and random seeds. Then dump into a json file.
+    Running all these combinations takes a very long time, up to a day. Returns the file with all networks and their code (e.g. 500a, 400d)
 
-def copyable_networks(agents):
-    
-if __name__ == "__main__":
+    Parameters:
+    - agent_sizes: list of agent counts to generate
+    - n_variants: number of random seeds (set to ten networks)
+    - output_file: name of json file containing outputs
+    """
 
-    
+    all_networks = {}
 
-    #Build a population
-    test_agents = ["AG" + str(i).zfill(3) for i in range(agents)]
+    for size in agent_sizes:
+        print(f"\nGenerating networks for N={size}")
 
-    print("Building network....")
-    net = make_network(test_agents, link_density=0.08, degree_heterogeneity=1.5, clustering_coef=0.25, random_state=80)
+        # build agent names
+        agents = ["AG" + str(i).zfill(3) for i in range(size)]
 
-    # --- Basic stats ---
-    degrees = [len(neighbors) for neighbors in net.values()]
-    total_undirected_edges = sum(degrees) // 2
-    N = len(test_agents)
-    actual_density = total_undirected_edges / (N * (N - 1) / 2)
+        for i in range(n_variants):
+            letter = ascii_lowercase[i]
+            key = f"{size}{letter}"
+            seed = i + 1
 
-    print(f"\n--- Network summary ---")
-    print(f"Agents          : {N}")
-    print(f"Total edges     : {total_undirected_edges}")
-    print(f"Actual density  : {actual_density:.4f}  (target: {0.8}")
-    print(f"Mean degree     : {sum(degrees)/N:.2f}")
-    print(f"Max degree      : {max(degrees)}")
-    print(f"Min degree      : {min(degrees)}")
-    print(f"Degree std dev  : {(sum((d - sum(degrees)/N)**2 for d in degrees)/N)**0.5:.2f}")
+            print(f"  Doing: {key} (seed={seed})")
 
-    # Degree heterogeneity (variance/mean)
-    mean_k = sum(degrees) / N
-    var_k  = sum((d - mean_k)**2 for d in degrees) / N
-    actual_heterogeneity = var_k / mean_k if mean_k > 0 else 0
-    print(f"Actual hetero.  : {actual_heterogeneity:.3f}  (target: 1.5)")
+            net = make_network(
+                agents,
+                link_density=0.08,
+                degree_heterogeneity=1.5,
+                clustering_coef=0.25,
+                random_state=seed
+            )
 
-    # Clustering coefficient (fraction of closed triangles over open ones)
-    def local_cc(node_index, G, N):
-        nbrs = []
-        for j in range(N):
-            if G[node_index][j] == 1:
-                nbrs.append(j)
-        k = len(nbrs)
-        if k < 2:
-            return 0.0
-        links = 0
-        for a in range(k):
-            for b in range(a + 1, k):
-                links += G[nbrs[a]][nbrs[b]]
-        return 2 * links / (k * (k - 1))
+            all_networks[key] = net
 
-    G_mat = []
-    for _ in range(N):
-        G_mat.append([0] * N)
+    #save to JSON
+    with open(output_file, "w") as f:
+        json.dump(all_networks, f)
 
-    index_map = {}
-    for i, a in enumerate(test_agents):
-        index_map[a] = i
-
-    for agent, nbrs in net.items():
-        i = index_map[agent]
-        for nb in nbrs:
-            j = index_map[nb]
-            G_mat[i][j] = 1
-
-    cc_values = []
-    for i in range(N):
-        cc_values.append(local_cc(i, G_mat, N))
-
-    valid_cc = []
-    for v in cc_values:
-        if v > 0:
-            valid_cc.append(v)
-
-    mean_cc = sum(valid_cc) / len(valid_cc) if valid_cc else 0
-    print(f"Actual clust.   : {mean_cc:.3f}  (target: 0.25)")
-
-    for agent in test_agents:
-        print(agent, net[agent])
+    print(f"\nSaved to {output_file}")
+"""
+generate_predefined_networks(
+    agent_sizes=[50, 100, 150, 200, 250, 300, 350, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 100],
+    n_variants=5
+    )
+"""
