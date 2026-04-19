@@ -34,21 +34,22 @@ default_epsilon_social = 0.4  #how strongly social contact pulls peak centers to
 #   shift = behavioral_param * appliance_rate * epsilon * (target - center)
 #---------------------------------------------------------------------------------
 appliance_shift_rates = {
-    # HIGH (wet appliances)
-    "Washing": 0.75,  #highly flexible, one of the most shiftable loads in literature
-    "Dishwasher": 0.65, #highly flexible, can run any time without user presence
-    "Tumble_Drier": 0.60,  #flexible but often scheduled after a wash cycle
+    #Highest flexibility willingness -> Based on Berg et al. (2024) 
+    "Washing": 0.75,  
+    "Dishwasher": 0.75, 
+    "Tumble_Drier": 0.60,  
 
-    # MEDIUM (behavioral)
-    "Electronics": 0.40, #moderate flexibility, general-purpose usage patterns
-    "TV": 0.30, #leisure-driven but somewhat shiftable in time
+    #Medium flexibility (behavioral/leisure)
+    "Electronics": 0.30, #moderate flexibility, general-purpose usage patterns
+    "TV": 0.30, #leisure-driven, light flexibility
 
-    # LOW (routine-bound)
-    "Oven": 0.15, #tied to meal times, low flexibility
-    "Cooker": 0.15, #tied to meal times, very low shifting potential
-    "Hob": 0.15, #tied to meal times, very low flexibility
-    "Grill": 0.15, #tied to meal times, very low flexibility
-    "EV": 0.20} #tied to overnight charging routines, low flexibility similar to cooking
+    #Lowest flexibility willingness (routine bound) -> Based on Berg et al. (2024)
+    "Oven": 0.15,  
+    "Cooker": 0.15,  
+    "Hob": 0.15,  
+    "Grill": 0.15,  
+    
+    "EV": 0.35} #High future potential for flexibility, but still grounded in routine -> based on Sørensen (2021)
 
 
 
