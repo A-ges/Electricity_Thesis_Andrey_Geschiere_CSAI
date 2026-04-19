@@ -7,12 +7,13 @@ these values will be used as baseline price in the price generator formula
 EPEX SPOT is a European market where electricity is bought and sold at a country specific-price.
 The price (in MWh) is the market price of electricity for each hour. It is the price paid by DSO's to get their energy for that hour from the central distributor,
 they then provide it to consumers and add their own costs. Non-dynamic consumer prices in the Netherlands are often around ~0,26 euro per kWh 
-Price is set by supply and demand: when electricity is scarce, the price goes up; when there is plenty available, the price goes down.
+Price is set by supply and demand: when electricity is scarce, the price goes up. When there is plenty available, the price goes down.
 
 All prices are finalized thourgh dividing by ten to get smaller numbers
 
-NOTE: EPEX prices are in MWh, my model (and Williams et al. (2025)) returns KW. Because I will only work with ratios and relative differences when it comes to pricing,
-I will keep these amounts as they are and view them as unnamed pricing units for every KW.
+NOTE: EPEX prices are in MWh, my model (and Williams et al. (2025)) returns kW per slot. Cost is computed as
+kW * price_€/MWh * 0.25h = kWh * price_€/MWh, so these are unnamed pricing units per kWh consumed.
+I will keep these amounts as they are and view them as unnamed pricing units for every kWh.
 
 """
 url = "https://huggingface.co/datasets/OpenSTEF/liander2024-energy-forecasting-benchmark/resolve/main/EPEX.parquet"
