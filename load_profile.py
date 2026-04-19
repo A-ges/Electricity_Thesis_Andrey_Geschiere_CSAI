@@ -129,6 +129,12 @@ hob_raw_peaks = [(18.22784853881954, 0.15979319165991923, 1.5625426291399946), (
 tv_raw_peaks = [(8.178903464086682, 2.4674115102346237, 2.509022410606133), (19.505228878954412, 3.575007824823448, 0.4148362459235295), (18.615440531185566, 2.3700823150476538, 3.4375909799857913), (21.537457239174596, 3.6798085662182154, 0.4212647664517777)]
 electronics_raw_peaks = [(8.178903464086682, 2.4674115102346237, 2.509022410606133), (19.505228878954412, 3.575007824823448, 0.4148362459235295), (18.615440531185566, 2.3700823150476538, 3.4375909799857913), (21.537457239174596, 3.6798085662182154, 0.4212647664517777)]
 
+#EV baseline: added, was not included in the English Switch-on data, and peaks visually approximated from Robinson et al. (2013) figure 6: blue line called Home Private
+#EVs are handled separately because they use a single daily draw rather than multiple uses
+#Defined here (before baseline_peak_tuples) so it can be included in the shared peak dict for shifting
+ev_raw_peaks = [(0.6, 2.2, 1.8), (14.0, 0.5, 3), (19.5, 2.5, 2.3), (24, 1, 2.7)]
+ev_baseline  = multi_peak_distribution(adjust_peaks(ev_raw_peaks))
+
 #Apply adjust_peaks() to produce the calibrated starting peaks for all agents
 #These are the peaks before habit shift, agent.py adds its own height bonus on top
 baseline_peak_tuples = {
@@ -140,7 +146,8 @@ baseline_peak_tuples = {
     "Grill": adjust_peaks(grill_raw_peaks),
     "Hob": adjust_peaks(hob_raw_peaks),
     "TV": adjust_peaks(tv_raw_peaks),
-    "Electronics": adjust_peaks(electronics_raw_peaks)}
+    "Electronics": adjust_peaks(electronics_raw_peaks),
+    "EV": adjust_peaks(ev_raw_peaks)}  #EV included so agents with has_ev can shift their charging times
 
 baselines = {}
 #Iterate through appliances and their peak definitions
@@ -149,11 +156,6 @@ for name, peaks in baseline_peak_tuples.items():
     distribution = multi_peak_distribution(peaks)
     #store in the dictionary baselines, appliance name as key
     baselines[name] = distribution
-    
-#EV baseline: added, was not included in the English Switch-on data, and peaks visually approximated from Robinson et al. (2013) figure 6: blue line called Home Private
-#EVs are handled separately because they use a single daily draw rather than multiple uses
-ev_raw_peaks = [(0.6, 2.2, 1.8), (14.0, 0.5, 3), (19.5, 2.5, 2.3), (24, 1, 2.7)]
-ev_baseline  = multi_peak_distribution(adjust_peaks(ev_raw_peaks))
 
 
 #---------------------
@@ -299,13 +301,13 @@ def build_daily_load(agent_appliances, has_ev, random_state, previous_overflow=N
         schedule[name] = start_slots  #record the start slots for this appliance today
 
     #handling EVs
-    #if the probability hits, one start-time is sampled from the EV MPD,
-    #and load is spread over the charging duration exactly as done above
+    #if the probability hits, one start-time is sampled from the EV distribution,
+    #using the agent's shifted distribution if available, otherwise the baseline
     if has_ev:
         ev_draw = random_state.random()
         if ev_draw < 41.6 / 180:  #taken from table 4 (private home value divided by 6 months)
-            #sample start-hour from the EV evening-peak distribution
-            start_hour = int(random_state.choice(np.arange(24), p=ev_baseline))
+            #sample start-hour from the EV distribution (shifted if agent has one, baseline otherwise)
+            start_hour = int(random_state.choice(np.arange(24), p=active_distributions["EV"]))
             quarter = int(random_state.integers(0, 4))
             start_slot = start_hour * 4 + quarter  #convert to 15-min slot index
 
