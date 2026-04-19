@@ -99,7 +99,7 @@ def adjust_peaks(peak_list):
     This change was made because of:
     1. A mismatch of peaking and minimal usage hours against real DSO data: without adjustments
        the model peaks at 12, with adjustments this peak is shifted to the morning and mirrors
-       a similar structure to general electricity usage curves -> validated against https://huggingface.co/datasets/OpenSTEF/liander2024-energy-forecasting-benchmark
+       a similar structure to general electricity usage curves -> calibrated against https://huggingface.co/datasets/OpenSTEF/liander2024-energy-forecasting-benchmark (2024 Dutch aggregate data)
     2. This mismatch would make the usage of baseline EPEX pricing illogical
     """
     adjusted = []
@@ -147,7 +147,7 @@ baselines = {}
 for name, peaks in baseline_peak_tuples.items():
     #generate the probability distribution for this specific appliance/task
     distribution = multi_peak_distribution(peaks)
-    #store in the dictionary, appliance name as key
+    #store in the dictionary baselines, appliance name as key
     baselines[name] = distribution
     
 #EV baseline: manually added and peaks visually approximated from Robinson et al. (2013) figure 6: blue line called Home Private
@@ -184,7 +184,7 @@ def sample_agent_appliances(random_state):
     #EV characteristics from Robinson et al. (2013) Table 4
     has_ev = random_state.random() < 0.05  #5% EV ownership is a hyperparameter based on dutch data interpolated to 2024 (https://www.rvo.nl/onderwerpen/elektrisch-vervoer/stand-van-zaken), to be adjusted when addressing specific countries
     if has_ev:
-        ev_power = abs(random_state.normal(3.3, 0.3))      #3 kv mentioned in Robinson et al. (2013), converted to 3.3 kw
+        ev_power = abs(random_state.normal(3.3, 0.3)) #3 kv mentioned in Robinson et al. (2013), converted to 3.3 kw
         ev_runtime = abs(random_state.normal(3.1 * 60, 20))  #3.1 hours converted to minutes, 20 is a self set hyperparameter to account for variance in batteries/car-types
         ev_runtime = max(15, round(ev_runtime))  #safety for edge cases, minimum 15 minutes of charging
         agent_appliances["EV"] = {"power_kw": ev_power, "runtime_min": ev_runtime}
@@ -232,7 +232,6 @@ def build_daily_load(agent_appliances, has_ev, random_state, previous_overflow=N
 
     #pre-build the active distributions dict once before the per-appliance loop
     #if custom_distributions were provided by agent.py, they override the shared baselines
-    #appliances not in custom_distributions still fall back to the global baseline
     if custom_distributions is not None:
         active_distributions = baselines.copy() #start with the shared baselines
         active_distributions.update(custom_distributions) #overlay with the agent's shifted versions
@@ -245,10 +244,10 @@ def build_daily_load(agent_appliances, has_ev, random_state, previous_overflow=N
         for p in probs:
             draw = random_state.random()  #draw a random float between 0 and 1
             if draw < p:
-                n_uses = n_uses + 1  #this hour produced a switch-on event
+                n_uses += 1  #this hour produced a switch-on event
 
         #cap n_uses at the agent's sampled max_uses for this appliance
-        #prevents unrealistic use counts (e.g. TV 8 times), as determined by Williams et al. (2025)
+        #prevents unrealistic use counts (e.g. TV 15 times), as determined by Williams et al. (2025)
         n_uses = min(n_uses, agent_appliances[name]["max_uses"])
 
         #skip this appliance if it will not be used today
@@ -261,7 +260,7 @@ def build_daily_load(agent_appliances, has_ev, random_state, previous_overflow=N
         start_hours = random_state.choice(np.arange(24), size=n_uses, p=dist)
 
         #Let the agent sample 5 times again for new hours, if an hour was already chosen
-        #to prevent a lot of duplicate use and create more logical, spread-over-the-day behavior
+        #to prevent a lot of duplicate use and create more logical spread behavior
         used_hours = []
         for hour in start_hours:
             for i in range(5):
