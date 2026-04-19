@@ -4,12 +4,11 @@ from load_profile import baseline_peak_tuples, multi_peak_distribution, sample_a
 """
 Each Agent object represents one household in the simulation. It has:
     -> Behavioral parameters (habit_str, price_sens, soc_suc) sampled from the
-       Beta distributions in Setting_Parameters.py
+       beta distributions in Setting_Parameters.py
     -> Fixed appliance characteristics (power draw, runtime, max daily uses) sampled once
        at initialisation and remain static
     -> Personal peak lists: one list of (center, height, width) up to 4 peaks per appliance (as determined by baseline_distributions.py)
-       -> These are updated daily with the shifting algorithm
-    -> Current probability distributions derived from those peak lists
+    -> Probability distributions derived from those peak lists
        -> Passed to load_profile.build_daily_load() every simulated day
 
 Shifting order each day:
@@ -20,9 +19,9 @@ Shifting order each day:
 """
 
 #These scaling factors control how large each behavioral shift is
-#They are used as defaults in run_model.py and can be overridden there as parameter
+#They are used as defaults in run_model.py and can be overridden there as parameter, used to tweak the model in development and gives some more flexibility for generalisation
 
-default_epsilon_habit = 1.8   #height added per unit of habit_str at initialization (one time only)
+default_epsilon_habit = 1.8   #magnitude height/width changed at initialization (one time only)
 default_epsilon_price = 0.4   #how strongly price signals pull peak centers toward cheap hours (per day)
 default_epsilon_social = 0.4  #how strongly social contact pulls peak centers toward neighbors (per day)
 
@@ -45,23 +44,24 @@ appliance_shift_rates = {
     "TV": 0.30, #leisure-driven but somewhat shiftable in time
 
     # LOW (routine-bound)
-    "Oven": 0.25, #tied to meal times, low flexibility
-    "Cooker": 0.20, #tied to meal times, very low shifting potential
+    "Oven": 0.15, #tied to meal times, low flexibility
+    "Cooker": 0.15, #tied to meal times, very low shifting potential
     "Hob": 0.15, #tied to meal times, very low flexibility
-    "Grill": 0.15} #tied to meal times, very low flexibility
+    "Grill": 0.15, #tied to meal times, very low flexibility
+    "EV": 0.20} #tied to overnight charging routines, low flexibility similar to cooking
 
 
 
 class Agent:
     """
-    Residential household agent.
+    Instance of a household
 
     Inits:
-    -> agent_id: unique ID matching entry in networks.json (e.g. "AG001")
+    -> agent_id: unique ID matching entry in networks.json (e.g. AG001)
     -> dominant_group: Habit-driven, Price-responsive or Social-influenced
-    -> habit_str: Habit strength drawn from Beta distribution, range [0, 1]
-    -> price_sens: Price sensitivity drawn from Beta distribution, range [0, 1]
-    -> soc_suc: Social susceptibility drawn from Beta distribution, range [0, 1]
+    -> habit_str: Habit strength drawn from Beta distribution 
+    -> price_sens: Price sensitivity drawn from Beta distribution 
+    -> soc_suc: Social susceptibility drawn from Beta distribution 
     -> rng: personal RNG derived from master seed in run_model.py
     -> epsilon_habit: Passed in from run_model.py so it can be tuned easily, used to init the peaks
     """
@@ -104,10 +104,13 @@ class Agent:
         Set up personal peak lists at the start with habit parameter
         """
         for name, baseline_peaks in baseline_peak_tuples.items():
+            if name == "EV" and not self.has_ev:  #skip EV peaks for agents without an EV
+                continue
             habit_adjusted = []  #will hold the habit-shifted version of peaks for the appliance
             for center, height, width in baseline_peaks:
                 new_height = height + self.habit_str * epsilon_habit  #raise height by habit strength
-                habit_adjusted.append((center, new_height, width)) #center and width unchanged
+                new_width = max(0.2, width - self.habit_str * 0.5)  #habitual agents have tighter peaks, floor at 0.2
+                habit_adjusted.append((center, new_height, new_width)) #center unchanged
             self.current_peak_lists[name] = habit_adjusted  #store the adjusted peaks for this appliance
 
         #initialize previous_peak_lists as an identical copy of current for reference after day0
@@ -138,11 +141,6 @@ class Agent:
             price_delta  = price_sens * appliance_rate * epsilon_price  * (nearest_cheap_hour - center)
             social_delta = soc_suc    * appliance_rate * epsilon_social * (neighbor_mean_center - center)
             new_center   = clip(center + price_delta   + social_delta, 0.0, 23.0)
-
-        Why simultaneous rather than sequential shifts?
-        -> Applying price first and social second (or vice versa) would compound the two effects
-        -> Adding both deltas together and applying them in one step keeps their contributions
-           independent, making results easier to interpret
 
         Only peak hour changes, heights and widths are fixed after initialization
 
@@ -217,7 +215,7 @@ class Agent:
 
     def compute_discomfort(self):
         """
-        Compute this agent's cumulative behavioral discomfort.
+        Compute this agent's cumulative behavioral discomfort
 
         Returns the sum of abs(current_center - initial_center) across all peaks and appliances.
         -> A higher value means the agent is running appliances further from their preferred/initial times
