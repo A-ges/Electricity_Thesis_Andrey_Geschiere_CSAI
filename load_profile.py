@@ -150,7 +150,7 @@ for name, peaks in baseline_peak_tuples.items():
     #store in the dictionary baselines, appliance name as key
     baselines[name] = distribution
     
-#EV baseline: manually added and peaks visually approximated from Robinson et al. (2013) figure 6: blue line called Home Private
+#EV baseline: added, was not included in the English Switch-on data, and peaks visually approximated from Robinson et al. (2013) figure 6: blue line called Home Private
 #EVs are handled separately because they use a single daily draw rather than multiple uses
 ev_raw_peaks = [(0.6, 2.2, 1.8), (14.0, 0.5, 3), (19.5, 2.5, 2.3), (24, 1, 2.7)]
 ev_baseline  = multi_peak_distribution(adjust_peaks(ev_raw_peaks))
@@ -178,8 +178,7 @@ def sample_agent_appliances(random_state):
     #baseline for standby, fridge etc:
     baseline_power = abs(random_state.normal(0.4, 0.15))  #sourced from Williams et al. (2025)
     agent_appliances["Baseline"] = {"power_kw": baseline_power}
-    #this baseline won't matter for the costs, it is a tool to get a validated aggregate and to get more realistic peak loads
-
+    #this baseline won't matter for the costs, it is a tool to get a validated aggregate
     #setting up EVs
     #EV characteristics from Robinson et al. (2013) Table 4
     has_ev = random_state.random() < 0.05  #5% EV ownership is a hyperparameter based on dutch data interpolated to 2024 (https://www.rvo.nl/onderwerpen/elektrisch-vervoer/stand-van-zaken), to be adjusted when addressing specific countries
@@ -285,7 +284,7 @@ def build_daily_load(agent_appliances, has_ev, random_state, previous_overflow=N
             start_slot = h * 4 + quarter
 
             #spread load over each slot of the runtime
-            #if the slot exceeds 95 (end of day), place load in the overflow array
+            #if the slot exceeds 95 (end of day), place load in the overflow list
             for slot in range(n_slots):
                 target_slot = start_slot + slot
                 if target_slot < 96:
