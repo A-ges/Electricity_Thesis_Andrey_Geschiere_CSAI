@@ -1,7 +1,5 @@
 import numpy as np
-from load_profile import (baseline_peak_tuples, #the adjusted Gaussian peaks shared by all agents as a starting point
-                        multi_peak_distribution, #turns a list of (center, height, width) tuples into a valid 24h distribution
-                        sample_agent_appliances) #samples this agent's fixed appliance hardware (power draw, runtime, max uses)
+from load_profile import baseline_peak_tuples, multi_peak_distribution, sample_agent_appliances
 
 """
 Each Agent object represents one household in the simulation. It has:
@@ -50,8 +48,8 @@ appliance_shift_rates = {
     "Oven": 0.25, #tied to meal times, low flexibility
     "Cooker": 0.20, #tied to meal times, very low shifting potential
     "Hob": 0.15, #tied to meal times, very low flexibility
-    "Grill": 0.15, #tied to meal times, very low flexibility
-}
+    "Grill": 0.15} #tied to meal times, very low flexibility
+
 
 
 class Agent:
@@ -163,11 +161,9 @@ class Agent:
         new_peak_lists = {}  #holds the updated peaks for all appliances
 
         for name, peaks in self.previous_peak_lists.items():
-            rate = appliance_shift_rates[name]  #get this appliance's flexibility rate, default 0.3 if missing
-            if social_targets: 
-                social_target = social_targets[name]
-            else:
-                social_target = None #none if no agent used the appliance
+            rate = appliance_shift_rates[name]  #get this appliance's flexibility rate
+            
+            social_target = social_targets[name]
 
             new_peaks = []  #will hold the updated (center, height, width) tuples for this appliance
             for center, height, width in peaks:
@@ -218,18 +214,15 @@ class Agent:
         self.last_price_flexibility = price_flex
         self.last_social_flexibility = social_flex
 
-    #------------------------------------------------------------------
-    #Discomfort metric
-    #------------------------------------------------------------------
 
     def compute_discomfort(self):
         """
         Compute this agent's cumulative behavioral discomfort.
 
         Returns the sum of abs(current_center - initial_center) across all peaks and appliances.
-        -> A higher value means the agent is running appliances further from their preferred times
+        -> A higher value means the agent is running appliances further from their preferred/initial times
         -> This is a measure for how much the price and social signals have changed normal routines
-        -> It is cumulative, measures total drift from day 0, not just yesterday's shift
+        -> It is cumulative, measures total drift from day 0, not just yesterday's shift (which is flexibility)
         """
         total = 0.0
         for name, peaks in self.current_peak_lists.items():
