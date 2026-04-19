@@ -305,15 +305,15 @@ print("\n")
 
 #Map the names to variable names in the copy-paste text.
 variable_names = {
-    "Dishwasher": "dishwasher_baseline",
-    "Washing": "washing_baseline",
-    "Tumble Drier": "tumble_drier_baseline",
-    "Cooker": "cooker_baseline",
-    "Oven": "oven_baseline",
-    "Grill": "grill_baseline",
-    "Hob": "hob_baseline",
-    "TV Total": "tv_baseline",
-    "Electronics": "electronics_baseline",
+    "Dishwasher": "dishwasher_raw_peaks",
+    "Washing": "washing_raw_peaks",
+    "Tumble Drier": "tumble_drier_raw_peaks",
+    "Cooker": "cooker_raw_peaks",
+    "Oven": "oven_raw_peaks",
+    "Grill": "grill_raw_peaks",
+    "Hob": "hob_raw_peaks",
+    "TV Total": "tv_raw_peaks",
+    "Electronics": "electronics_raw_peaks"
 }
 
 print("=" * 60)
@@ -321,7 +321,7 @@ print("Copy-paste below values into final simulation:\n")
 
 for appliance_name, peak_list in fitted_peaks_per_appliance.items():
     variable_name = variable_names[appliance_name]
-    print(f"{variable_name} = multi_peak_distribution({peak_list})\n")
+    print(f"{variable_name} = ({peak_list})\n")
 
 ev_peaks = [               #manually added and visually approximated Robinson et al. (2013) figure 6: blue line "Home Private"
     (0.6, 2.2, 1.8),   
@@ -330,5 +330,37 @@ ev_peaks = [               #manually added and visually approximated Robinson et
     (24, 1, 2.7),
 ]
 
-print(f"ev_baseline = multi_peak_distribution({ev_peaks})")
+print(f"ev_raw_peaks = ({ev_peaks})")
 
+#-------------------------
+#PLOTTING
+#-------------------------
+hours = np.arange(24, dtype=float)
+
+fig, axes = plt.subplots(3, 3, figsize=(15, 10))
+fig.suptitle("Original probabilities vs. Gaussian fit", fontsize=13)
+
+# Flatten the 3x3 grid of axes into a single list for easy iteration.
+axes_flat = axes.flatten()
+
+for axis, (appliance_name, target_probabilities) in zip(axes_flat, normalized_data.items()):
+    peak_list = fitted_peaks_per_appliance[appliance_name]
+    fitted_dist = multi_peak_distribution(peak_list)
+    residual_ss = np.sum((fitted_dist - target_probabilities)**2)
+    number_of_peaks = len(peak_list)
+
+    axis.bar(hours, target_probabilities, alpha=0.4, color="steelblue", label="Original data")
+    axis.plot(hours, fitted_dist, color="red", linewidth=2,
+              label=f"Fit ({number_of_peaks} peaks)")
+
+    # Mark each peak centre with a vertical dashed line.
+    for centre_hour, height, width in peak_list:
+        axis.axvline(x=centre_hour, color="red", alpha=0.25, linewidth=1, linestyle="--")
+
+    axis.set_title(f"{appliance_name}  (RSS={residual_ss:.5f})", fontsize=10)
+    axis.set_xlabel("Hour of day")
+    axis.set_ylabel("Probability")
+    axis.set_xticks(range(0, 24, 3))
+    axis.legend(fontsize=8)
+
+plt.tight_layout()
