@@ -155,28 +155,8 @@ def gini_coefficient(load_array):
     return float((2.0 * (index * arr).sum()) / (n * arr.sum()) - (n + 1) / n)
     #low slots get low weights, high slots get high weights, then normalize by total load and count.
 
-def count_rebound_peaks(aggregate, prominence):
-    """
-    Count the number of prominent local maxima in the aggregate 96 slot load profile
 
-    Uses scipy.signal.find_peaks with a prominence filter so that minor bumps are excluded
-    The prominence threshold is a fraction of the day's mean load,
-    making it scale invariant with N
-
-    Parameters:
-    -> aggregate: system aggregate load array per 15-min slot
-    -> prominence: minimum peak prominence as a fraction of mean load
-        -> 0.5 means a peak must stand at least 50% of mean load above its surroundings
-
-    Returns number of prominent peaks detected on this day
-    """
-    meanload = aggregate.mean()
-    needed_prominence = prominence * meanload  #convert fractional threshold to absolute kW
-    peaks, _ = find_peaks(aggregate, prominence=needed_prominence)  #detect prominent enough maxima
-    return len(peaks)
-
-
-def compile_day_metrics(day, aggregate, prices, agent_records, prominence):
+def compile_day_metrics(day, aggregate, prices, agent_records):
     """
     Compute system-level metrics for a single simulated day
 
@@ -197,7 +177,6 @@ def compile_day_metrics(day, aggregate, prices, agent_records, prominence):
     load_cv = float(aggregate.std() / mean_load) #coefficient of variation: normalized spread
     load_gini = gini_coefficient(aggregate) #temporal load inequality
     total_energy_kwh = float(aggregate.sum() * 0.25) #total energy in kWh for this day
-    n_peaks = count_rebound_peaks(aggregate, prominence) #number of prominent peaks (rebound detection)
     peak_hour = float(np.argmax(aggregate)) / 4.0  #slot index to hour of day
 
     mean_price = float(prices_arr.mean()) #average price across the day
@@ -240,7 +219,6 @@ def compile_day_metrics(day, aggregate, prices, agent_records, prominence):
         "load_cv": load_cv,
         "load_gini": load_gini,
         "total_energy_kwh": total_energy_kwh,
-        "n_rebound_peaks": n_peaks,
         "peak_hour": peak_hour,
         "mean_price": mean_price,
         "price_min": price_min,
