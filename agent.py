@@ -129,9 +129,9 @@ class Agent:
         self.initial_peak_centers = {}
         for name, peaks in self.current_peak_lists.items():
             centers_list = []
-        for c, h, w in peaks:
-            centers_list.append(c)
-        self.initial_peak_centers[name] = centers_list
+            for c, h, w in peaks:
+                centers_list.append(c)
+            self.initial_peak_centers[name] = centers_list
 
 
     def apply_shifts(self, price_minima, social_targets, epsilon_price, epsilon_social):
