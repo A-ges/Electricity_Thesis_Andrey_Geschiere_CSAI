@@ -13,7 +13,7 @@ All functions are called from run_model.py at the end of each simulated day.
 
 Cost metric design note:
     -> Costs are computed on appliance load ONLY (baseline is subtracted)
-    -> The normalized cost (pricing units per kW of appliance load) is comparable across agents
+    -> The normalized cost (pricing units per kWh of appliance load) is comparable across agents
        regardless of consumption characteristics
     -> Pricing units are EPEX-derived values divided by 10 as set in price_estimator.py
     -> They are consistent for relative comparison but do not correspond to real world consumer costs
@@ -63,11 +63,15 @@ def compute_social_targets_for_agent(agent, previous_day_contacts, agents_by_id,
         for contact_id in contact_ids:
             contact = agents_by_id[contact_id]  #look up the contact Agent object
             
-            #use previous peaklists, based on the day of interaction 
-            for c, h, w in contact.previous_peak_lists[appliance]:
+            #use previous peaklists, based on the day of interaction
+            #use .get() so contacts without EV are skipped
+            for c, h, w in contact.previous_peak_lists.get(appliance, []):
                 centers.append(c)  #add the center of this peak
 
-        social_targets[appliance] = float(np.average(centers)) #average the centers
+        if centers:
+            social_targets[appliance] = float(np.average(centers)) #average the centers
+        else:
+            social_targets[appliance] = None  #no contacts used this appliance (e.g. EV for non-EV contacts)
 
     return social_targets
 
@@ -91,7 +95,7 @@ def compile_agent_day_metrics(agent, day, load, prices):
 
     #multiply by 0.25 because each slot is 15 minutes = 0.25 hours
     total_appliance_kwh = float(appliance_load.sum() * 0.25)
-    #raw cost: sum of (appliance kW * price * 0.25h) across all 96 slots
+    #raw cost: sum of (appliance kW * price * 0.25h) across all 96 slots, giving kWh * price = cost
     raw_cost = float((appliance_load * prices).sum() * 0.25)
 
     #normalized cost: pricing units per kWh of appliance load
@@ -102,8 +106,8 @@ def compile_agent_day_metrics(agent, day, load, prices):
         normalized_cost = 0.0  #avoid division by zero if agents with no appliance use today
 
     #these are the shift magnitudes stored on the agent by apply_shifts() earlier this day
-    total_flex  = agent.last_total_flexibility
-    price_flex  = agent.last_price_flexibility
+    total_flex = agent.last_total_flexibility
+    price_flex = agent.last_price_flexibility
     social_flex = agent.last_social_flexibility
 
     #cumulative drift of peak centers away from the agent's own day-0 preferred positions
@@ -149,6 +153,7 @@ def gini_coefficient(load_array):
     index = np.arange(1, n + 1)  #rank index 1 to n
     #Gini formula on sorted array
     return float((2.0 * (index * arr).sum()) / (n * arr.sum()) - (n + 1) / n)
+    #low slots get low weights, high slots get high weights, then normalize by total load and count.
 
 def count_rebound_peaks(aggregate, prominence):
     """
@@ -193,6 +198,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records, prominence):
     load_gini = gini_coefficient(aggregate) #temporal load inequality
     total_energy_kwh = float(aggregate.sum() * 0.25) #total energy in kWh for this day
     n_peaks = count_rebound_peaks(aggregate, prominence) #number of prominent peaks (rebound detection)
+    peak_hour = float(np.argmax(aggregate)) / 4.0  #slot index to hour of day
 
     mean_price = float(prices_arr.mean()) #average price across the day
     price_min = float(prices_arr.min()) #cheapest hour of the day
@@ -235,6 +241,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records, prominence):
         "load_gini": load_gini,
         "total_energy_kwh": total_energy_kwh,
         "n_rebound_peaks": n_peaks,
+        "peak_hour": peak_hour,
         "mean_price": mean_price,
         "price_min": price_min,
         "price_max": price_max,
