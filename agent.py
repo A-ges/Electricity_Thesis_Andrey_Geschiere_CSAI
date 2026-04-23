@@ -1,6 +1,6 @@
 import numpy as np
 from load_profile import baseline_peak_tuples, multi_peak_distribution, sample_agent_appliances
-
+#HHHHH
 """
 Each Agent object represents one household in the simulation. It has:
     -> Behavioral parameters (habit_str, price_sens, soc_suc) sampled from the
