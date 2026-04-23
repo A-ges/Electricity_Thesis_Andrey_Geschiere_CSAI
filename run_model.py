@@ -39,7 +39,7 @@ Simulation flow per day:
 
 def validate_network_code(code):
     """
-    Validate a network code string and return (N, variant)
+    Validate a network code string and return the n
     Raises a ValueError with if the code does not match the format
     Valid examples: 50a, 500c, 1000e
     Invalid examples: "200t" (t not in a-e), "201a" (201 not a multiple of 50)
@@ -59,7 +59,7 @@ def validate_network_code(code):
             f"Examples: '50a', '500c', '1000e'.")
 
     n = int(code[:-1]) #get indices starting before last one
-    return size
+    return n 
 
 
 def load_network(network_code, networks_path="networks.json"):
@@ -115,6 +115,7 @@ def run_model(
         -> [1, 7, 14] prints aggregate plots for days 1, 7, and 14, will skip if exceeds days
         
     -> median_plot: If true, print a median aggregate load profile across all simulated days
+       also overlays the day 1 and last day aggregate curves for comparison
 
     -> random_state: controlling seed, same value always produces identical simulation output
 
@@ -140,6 +141,7 @@ def run_model(
     -> df_agent_daily: pd.DataFrame -> one row per agent per day, used for RQ1 group analysis
     -> df_daily: pd.DataFrame -> one row per day, used for RQ2 system analysis
     -> load_profiles: aggregate kW per 15-min slot per day
+    -> df_pricing: pd.DataFrame -> one row per day per hour, columns: day, hour, price_baseline, price_used, price_delta
     """
 
     agents_pct = list(agents_pct)  #to ensure it is a mutable list
@@ -153,14 +155,14 @@ def run_model(
     print(f"Loading network {network_code} from {networks_path}...")
     full_network, n = load_network(network_code, networks_path) #load the json
     agent_ids = list(full_network.keys())   #ordered list of all agent IDs from the JSON
-    print(f"-> {n} agents loaded")
+    print(f"->  {n} agents loaded.")
     
     #assiging precentages to n
     habit_count = round(n * agents_pct[0] / 100)          
     price_count = round(n * agents_pct[1] / 100)          
     social_count = n - habit_count - price_count  #social group will take remainder
 
-    print(f"Group split: {habit_count} Habit-driven, {price_count} Price-responsive, {social_count} Social-influenced  (total: {habit_count + price_count + social_count})")
+    print(f"  Group split: {habit_count} Habit-driven, {price_count} Price-responsive, {social_count} Social-influenced  (total: {habit_count + price_count + social_count})")
 
 
     master_rng = np.random.default_rng(random_state) #master generator for deriving all sub seeds
@@ -194,6 +196,7 @@ def run_model(
     all_daily_profiles = []  #list of lists, all agent load arrays per day
     agent_day_records = []  #will become df_agent_daily in metrics.py
     day_records = []  #will become df_daily in metrics.py
+    pricing_records = []  #will become df_pricing, one row per day per hour
 
     #day 0 uses EPEX baseline prices
     current_prices_24h = list(price_baseline)
@@ -203,14 +206,23 @@ def run_model(
 
     #Main simulation loop
     print(f"\nRunning simulation: {days} days, {n} agents, seed {random_state}\n"
-          f"  epsilon_habit = {epsilon_habit}  epsilon_price = {epsilon_price}  "
-          f"epsilon_social = {epsilon_social}\n")
+          f"  epsilon_habit={epsilon_habit}  epsilon_price={epsilon_price}  "
+          f"epsilon_social={epsilon_social}\n")
 
     for day in range(days):
+        #collect prices used today for df_pricing, before they get updated at the end of this iteration
+        for hour in range(24):
+            pricing_records.append({
+                "day": day,
+                "hour": hour,
+                "price_baseline": price_baseline[hour],
+                "price_used": current_prices_24h[hour],
+                "price_delta": round(current_prices_24h[hour] - price_baseline[hour], 3)})
+
         #generate daily contact sub-network        
         today_contacts = generate_daily_contacts(
             full_network = full_network,
-            day_seed     = int(day_seeds[day]))
+            day_seed = int(day_seeds[day]))
         
         #apply price and social shifts (skipped on day 0)
         if day > 0:
@@ -275,7 +287,7 @@ def run_model(
         #average the 4 quarters per hour then divide by n to get kW per agent per hour
 
         hourly_per_agent = aggregate.reshape(24, 4).mean(axis=1) / n  #convert to hourly per-agent demand
-        next_prices_24h  = hour_price_estimator(hourly_per_agent)      #estimate tomorrow's prices
+        next_prices_24h = hour_price_estimator(hourly_per_agent)      #estimate tomorrow's prices
 
         #Now collect metrics for this day
         prices = np.zeros(96)
@@ -304,17 +316,18 @@ def run_model(
         #print a summary line for each day so progress is visible
         print(
             f"Day {day + 1:>3}/{days}  |  "
-            f"Peak: {aggregate.max():.2f} kW  |  "
-            f"Mean: {aggregate.mean():.2f} kW  |  "
-            f"PAR: {day_record['par']:.2f}  |  "
-            f"Flexibility: {day_record['accumulative_flexibility']:.2f}  |  "
-            f"Price Mean: {np.mean(current_prices_24h):.2f}")
+            f"peak: {aggregate.max():.2f} kW  |  "
+            f"mean: {aggregate.mean():.2f} kW  |  "
+            f"PAR: {day_record['par']:.3f}  |  "
+            f"flex: {day_record['accumulative_flexibility']:.2f}  |  "
+            f"price_mean: {np.mean(current_prices_24h):.3f}")
 
         current_prices_24h = next_prices_24h   #tomorrow uses today's estimated prices
         previous_day_contacts = today_contacts  #tomorrow's social shift uses today's contact network
 
     print("\nBuilding output DataFrames...")
     df_agent_daily, df_daily = build_dataframes(agent_day_records, day_records)
+    df_pricing = pd.DataFrame(pricing_records)  #one row per day per hour
     load_profiles = np.array(all_aggregates) 
 
     #Plotting    
@@ -333,24 +346,26 @@ def run_model(
             ax.set_xlabel("Hour of day")
             ax.set_title(
                 f"Aggregate load - Day {day_number}  "
-                f"({n} agents, network - {network_code}, seed {random_state})"
-            )
+                f"({n} agents, network - {network_code}, seed {random_state})")
             ax.grid(alpha=0.3)
             plt.xticks(range(25))
             plt.tight_layout()
             plt.show()
 
-    #median profile across the entire simulation period
+    #median profile across the entire simulation period, overlaid with day 1 and last day
     if median_plot:
         median_profile = np.median(load_profiles, axis=0)  #element-wise median across all days
         fig, ax = plt.subplots(figsize=(12, 4))
-        ax.fill_between(time_axis, median_profile, color="lightblue", alpha=0.7)
+        ax.fill_between(time_axis, median_profile, color="lightblue", alpha=0.7, label="Median")
+        ax.plot(time_axis, all_aggregates[0], color="darkblue", linewidth=1.2, alpha=0.7, label="Day 1")
+        ax.plot(time_axis, all_aggregates[-1], color="darkred", linewidth=1.2, alpha=0.7, label=f"Day {days}")
         ax.set_ylabel("kW")
         ax.set_xlabel("Hour of day")
         ax.set_title(
             f"Median aggregate load profile - {days} days, "
             f"{n} agents, network '{network_code}', seed {random_state}"
         )
+        ax.legend()
         ax.grid(alpha=0.3)
         plt.xticks(range(25))
         plt.tight_layout()
@@ -359,6 +374,7 @@ def run_model(
     print("\nSimulation complete.")
     print(f"  df_agent_daily : {df_agent_daily.shape}  (agents x days = {n} x {days})")
     print(f"  df_daily       : {df_daily.shape}        (one row per day)")
+    print(f"  df_pricing     : {df_pricing.shape}  ({days} days x 24 hours)")
     print(f"  load_profiles  : {load_profiles.shape}   (days x 96 slots)")
 
-    return df_agent_daily, df_daily, load_profiles
+    return df_agent_daily, df_daily, load_profiles, df_pricing
