@@ -96,7 +96,6 @@ def run_model(
     epsilon_habit = default_epsilon_habit,
     epsilon_price = default_epsilon_price,
     epsilon_social = default_epsilon_social,
-    rebound_prominence = 0.5,
     networks_path = "networks.json"):
     """
     Run the full model with behavioral shifting
@@ -130,10 +129,6 @@ def run_model(
     -> epsilon_social: social shift scaling factor applied daily
         -> Default is set in agent.py as default_epsilon_social
         -> Higher values make agents peak times draw nearer to social network
-        
-    -> rebound_prominence: prominence threshold for counting rebound peaks
-        -> A peak must exceed this fraction of the day's mean load above its surroundings
-        -> 0.5 means a peak must stand at least 50% of mean load above neighboring values
 
     -> networks_path: path to networks.json
 
@@ -309,8 +304,7 @@ def run_model(
             day = day,
             aggregate = aggregate,
             prices = current_prices_24h,
-            agent_records = today_agent_records,
-            prominence = rebound_prominence)
+            agent_records = today_agent_records)
         day_records.append(day_record) #appended to the full list for df_daily
 
         #print a summary line for each day so progress is visible
@@ -346,7 +340,7 @@ def run_model(
             ax.set_xlabel("Hour of day")
             ax.set_title(
                 f"Aggregate load - Day {day_number}  "
-                f"({n} agents, network - {network_code}, seed {random_state})")
+                f"({agents_pct} composition, network - {network_code}, seed {random_state})")
             ax.grid(alpha=0.3)
             plt.xticks(range(25))
             plt.tight_layout()
@@ -363,7 +357,7 @@ def run_model(
         ax.set_xlabel("Hour of day")
         ax.set_title(
             f"Median aggregate load profile - {days} days, "
-            f"{n} agents, network '{network_code}', seed {random_state}"
+            f"{agents_pct} composition, network '{network_code}', seed {random_state}"
         )
         ax.legend()
         ax.grid(alpha=0.3)
