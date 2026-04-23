@@ -113,13 +113,21 @@ def compile_agent_day_metrics(agent, day, load, prices):
     #cumulative drift of peak centers away from the agent's own day-0 preferred positions
     discomfort = agent.compute_discomfort()
 
-    #Cost-flexibility ratio
-    #higher ratio = more costly per unit of flexibility provided to the grid
-    #undefined (NaN) on day 0 because flexibility is 0 -> ratio would be division by zero
-    if total_flex > 0.0:
-        cost_flex_ratio = normalized_cost / total_flex
+    #to compute tradeoff
+    mean_price_today = float(prices.mean())
+    if total_appliance_kwh > 0.0:
+        agent_effective_price = raw_cost / total_appliance_kwh
     else:
-        cost_flex_ratio = float("nan")
+        agent_effective_price = mean_price_today  #edge case if no appliance consumption
+ 
+    price_advantage = mean_price_today - agent_effective_price #-> did agent pay above or below daily avg price? if + = less than the average, - = more than average
+ 
+    #savings_per_flex: total cost savings relative to average price, divided by total hours of peak center shift
+    #-> "how much monetary benefit did this agent get per unit of daily schedule disruption?"
+    if total_flex > 0.0:
+        savings_per_flex = (price_advantage * total_appliance_kwh) / total_flex
+    else:
+        savings_per_flex = float("nan")
 
     return {
         "day": day,
@@ -135,7 +143,8 @@ def compile_agent_day_metrics(agent, day, load, prices):
         "individual_cost_normalized": normalized_cost,
         "individual_discomfort": discomfort,
         "total_appliance_kwh": total_appliance_kwh,
-        "cost_flex_ratio": cost_flex_ratio}
+        "price_advantage": price_advantage,
+        "savings_per_flex": savings_per_flex}
 
 def gini_coefficient(load_array):
     """
@@ -189,6 +198,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
     accum_flexibility = float(df_agents["individual_flexibility"].sum()) #get agents shifts today
     accum_cost_norm = float(df_agents["individual_cost_normalized"].mean()) #mean normalized cost across all agents
     mean_discomfort = float(df_agents["individual_discomfort"].mean()) #mean cumulative discomfort across all agents
+    mean_price_advantage = float(df_agents["price_advantage"].mean())
 
     #Per-dominant-group metrics for comparison
     group_stats = {}
@@ -199,8 +209,10 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
             group_stats[f"flex_{key}_mean"] = float(subset["individual_flexibility"].mean())
             group_stats[f"cost_norm_{key}_mean"] = float(subset["individual_cost_normalized"].mean())
             group_stats[f"discomfort_{key}_mean"] = float(subset["individual_discomfort"].mean())
-            group_stats[f"cost_flex_ratio_{key}_mean"] = float(subset["cost_flex_ratio"].mean(skipna=True))  #skipna for day-0 NaN
+            group_stats[f"price_advantage_{key}_mean"] = float(subset["price_advantage"].mean())  
+            group_stats[f"savings_per_flex_{key}_mean"]   = float(subset["savings_per_flex"].mean(skipna=True)) #skipna for day-0 NaN
             group_stats[f"n_{key}"] = int(len(subset))
+        
         else:
             #group not present in this run, fill with NaN to avoid errors
             group_stats[f"flex_{key}_mean"] = float("nan")
