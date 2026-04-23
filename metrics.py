@@ -174,7 +174,6 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
     -> aggregate: total load across all agents in kW per 15-min slot
     -> prices: hourly prices used on this day
     -> agent_records: output of compile_agent_day_metrics
-    -> prominence: prominence threshold passed to count_rebound_peaks
 
     Returns a dict of metrics = one row for df_daily
     """
