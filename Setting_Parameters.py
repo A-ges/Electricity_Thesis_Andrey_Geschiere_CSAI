@@ -6,17 +6,30 @@ import numpy as np
 beta_parameters = {
     "Habit-driven": {
         "habit":  {"mu": 0.85, "K": 10},
-        "price":  {"mu": 0.10, "K": 10},
-        "social": {"mu": 0.20, "K": 10}},
+        "price":  {"mu": 0.10, "K": 5},
+        "social": {"mu": 0.15, "K": 5}},
     "Price-responsive": {
         "habit":  {"mu": 0.50, "K": 30},
-        "price":  {"mu": 0.70, "K": 20},
+        "price":  {"mu": 0.85, "K": 10},
         "social": {"mu": 0.10, "K": 5}},
     "Social-influenced": {
-        "habit":  {"mu": 0.60, "K": 30},
-        "price":  {"mu": 0.40, "K": 20},
-        "social": {"mu": 0.70, "K": 10}}
+        "habit":  {"mu": 0.70, "K": 20},
+        "price":  {"mu": 0.10, "K": 5},
+        "social": {"mu": 0.85, "K": 10}}
 }
+#main group variable should be high in any group
+#------------HABIT-------------
+#Habit agents have a lower price responsivity in general, because of unknowingness or lack of interest in self induced shift
+#Habit agents have a higher social influence parameter in general, allowing them to somewhat pivot towards a better strategy in case their network incentivises them. This follows the Cultural Attractor Theory as mentioned in Falandays & Smaldino (2022) 
+
+#------------PRICE-------------
+#Price responsive agents have some habit, but are allowed to spread more to indicate their stance towards flexibility
+#They have the lowest social parameter of all, because these agents have already set their strategy. They are affected to some extent but don't have a superior strategy to pivot towards, unlike habitual agents
+
+#------------SOCIAL-------------
+#These agents are viewed as initially habitual agents, who are generally more open to change a new strategy as long as their network shows this behavior.
+#Therefore, they start with a generally higher, but more spread (compared to a true habit agent), habit parameter.
+#Their initial knowledge about price is the same as the original habit-driven agents, allowing them this pivot oppurtunity through their social parameter
 
 
 def Param_Init(habit_num, price_num, social_num, random_state=None):
