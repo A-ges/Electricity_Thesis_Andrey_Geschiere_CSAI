@@ -20,10 +20,16 @@ Shifting order each day:
 
 #These scaling factors control how large each behavioral shift is
 #They are used as defaults in run_model.py and can be overridden there as parameter, used to tweak the model in development and gives some more flexibility for generalisation
+#Settled on bottom values based on face validity, I settled on two criteria:
+#1. Social agents stay put in cases of high habit, but shift along to some extent if there are some price agents present
+#2. Shouldn’t be too volatile over a 30 day period, bottom values give a gradual shift
+# -> Finding exact values would be a good point for future behavioral study
+#     -> Knowledge required for empirically grounded estimate: How do social agents shift relative to price agents (quantified) and how fast do they shift per day 
 
-default_epsilon_habit = 1.8   #magnitude height/width changed at initialization (one time only)
-default_epsilon_price = 0.4   #how strongly price signals pull peak centers toward cheap hours (per day)
-default_epsilon_social = 0.4  #how strongly social contact pulls peak centers toward neighbors (per day)
+
+default_epsilon_habit = 1.0   #magnitude height/width changed at initialization (one time only)
+default_epsilon_price = 0.25  #how strongly price signals pull peak centers toward cheap hours (per day)
+default_epsilon_social = 0.5  #how strongly social contact pulls peak centers toward neighbors (per day)
 
 
 #---------------------------------------------------------------------------------
