@@ -183,7 +183,7 @@ def sample_agent_appliances(random_state):
     #this baseline won't matter for the costs, it is a tool to get a validated aggregate
     #setting up EVs
     #EV characteristics from Robinson et al. (2013) Table 4
-    has_ev = random_state.random() < 0.05  #5% EV ownership is a hyperparameter based on dutch data interpolated to 2024 (https://www.rvo.nl/onderwerpen/elektrisch-vervoer/stand-van-zaken), to be adjusted when addressing specific countries
+    has_ev = random_state.random() < 0.05  #5% EV ownership is a hyperparameter based on dutch data interpolated to 2024 (https://www.rvo.nl/onderwerpen/elektrisch-vervoer/stand-van-zaken) and on western European data from 2023 (https://ec.europa.eu/eurostat/web/products-eurostat-news/w/ddn-20251126-2)
     if has_ev:
         ev_power = abs(random_state.normal(3.3, 0.3)) #3 kv mentioned in Robinson et al. (2013), converted to 3.3 kw
         ev_runtime = abs(random_state.normal(3.1 * 60, 20))  #3.1 hours converted to minutes, 20 is a self set hyperparameter to account for variance in batteries/car-types
