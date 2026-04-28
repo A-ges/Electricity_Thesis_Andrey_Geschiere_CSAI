@@ -180,7 +180,7 @@ class Agent:
                 #--------------------------------
                 #Implementation of social shift
                 #--------------------------------
-                #Move toward the height-weighted mean peak center of yesterday's daily contacts
+                #Move toward mean peak center of yesterday's daily contacts
                 #If no contacts ran this appliance yesterday, social_target is none -> no social shift
                 if social_target is not None:
                     s_delta = self.soc_suc * rate * epsilon_social * (social_target - center)
