@@ -140,16 +140,18 @@ class Agent:
 
         Shift formula applied to each peak center:
             price_delta  = price_sens * appliance_rate * epsilon_price  * (nearest_cheap_hour - center)
-            social_delta = soc_suc    * appliance_rate * epsilon_social * (neighbor_mean_center - center)
+            social_delta = soc_suc    * appliance_rate * epsilon_social * (neighbor_mean_center_i - center)
             new_center   = clip(center + price_delta   + social_delta, 0.0, 23.0)
 
-        Only peak hour changes, heights and widths are fixed after initialization
+        Only peak centers change, heights and widths are fixed after initialization
 
         Parameters:
         -> price_minima: hour indices of local price minima in todays prices 
-        -> social_targets: dict {appliance_name: float or None}
-            -> mean peak center from yesterday's daily contact network
-            -> None means no contacts used this appliance yesterday thus no social shift
+        -> social_targets: dict {appliance_name: {peak_index: mean_center_or_None} or None}
+            -> per-appliance dict mapping each peak index to the mean center of that index
+               across yesterday's daily contact network
+            -> None at the appliance level means no contacts used this appliance yesterday
+            -> None at the index level means no contacts had data for that specific peak
         -> epsilon_price: can be passed in run_model but a set parameter at top of this file
         -> epsilon_social: can be passed in run_model but a set parameter at top of this file
         """
@@ -161,31 +163,33 @@ class Agent:
 
         for name, peaks in self.previous_peak_lists.items():
             rate = appliance_shift_rates[name]  #get this appliance's flexibility rate
-            
-            social_target = social_targets[name]
+
+            social_target = social_targets[name]  #dict {peak_index: mean_center_or_None} or None
 
             new_peaks = []  #will hold the updated (center, height, width) tuples for this appliance
-            for center, height, width in peaks:
+            for i, (center, height, width) in enumerate(peaks):
                 #--------------------------------
                 #Implementation of price shift
                 #--------------------------------
-                #Goal: Find local minimum through gradient-descent style, slide down the slope
+                #Goal: Find local minimum relative to each peak and move there
                 #find the price minimum closest to the current peak center by minimizing the absolute distance
                 nearest_min = min(price_minima, key=lambda h: abs(h - center))
 
                 #the shift is scaled by: price sensitivity * appliance rate * epsilon * distance to target
-                #larger distance = larger shift; once arrived at the minimum the shift becomes zero
+                #larger distance = larger shift & once arrived at the minimum the shift becomes zero
                 p_delta = self.price_sens * rate * epsilon_price * (nearest_min - center)
 
                 #--------------------------------
                 #Implementation of social shift
                 #--------------------------------
-                #Move toward mean peak center of yesterday's daily contacts
-                #If no contacts ran this appliance yesterday, social_target is none -> no social shift
-                if social_target is not None:
-                    s_delta = self.soc_suc * rate * epsilon_social * (social_target - center)
+                #Move each peak toward the mean center of that same peak index across yesterday's contacts
+                #social_target[i] gives the index-matched mean, keeping peak 0 social with peak 0 etc.
+                #If no contacts ran this appliance yesterday, social_target is None -> no social shift
+                #If this specific index had no contributing contacts, that entry is None -> no social shift
+                if social_target is not None and social_target[i] is not None:
+                    s_delta = self.soc_suc * rate * epsilon_social * (social_target[i] - center)
                 else:
-                    s_delta = 0.0  #no social information available for this appliance
+                    s_delta = 0.0  #no social information available for this appliance peak
 
                 #Add both deltas simultaneously and clip to keep the center within the 24-hour clock
                 new_center = float(np.clip(center + p_delta + s_delta, 0.0, 23.0))
