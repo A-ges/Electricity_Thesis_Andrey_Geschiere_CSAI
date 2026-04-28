@@ -86,7 +86,7 @@ def load_network(network_code, networks_path="networks.json"):
 #-------------------------
 
 def run_model(
-    agents_pct = (80, 10, 10),
+    agents_pct = [80, 10, 10],
     network_code = "500a",
     days = 30,
     graphs = None,
@@ -97,7 +97,7 @@ def run_model(
     epsilon_social = default_epsilon_social,
     networks_path = "networks.json"):
     """
-    Run the full model with behavioral shifting
+    Run the full model with behavioral shifting if any epsilon > 0
 
     Parameters:
     -> agents_pct: list of 3 ints that must sum to 100
@@ -113,7 +113,7 @@ def run_model(
         -> [1, 7, 14] prints aggregate plots for days 1, 7, and 14, will skip if exceeds days
         
     -> median_plot: If true, print a median aggregate load profile across all simulated days
-       also overlays the day 1 and last day aggregate curves for comparison
+       -> also overlays the day 1 and last day aggregate curves for comparison
 
     -> random_state: controlling seed, same value always produces identical simulation output
 
