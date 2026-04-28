@@ -44,8 +44,9 @@ def compute_social_targets_for_agent(agent, previous_day_contacts, agents_by_id,
     """
     Used to compute per-appliance social shift targets for one agent
 
-    For each appliance this function collects all peak hours from yesterday's
-    peak lists of every daily contact and then returns the mean center
+    For each appliance this function collects peak centers grouped by peak index
+    from yesterday's peak lists of every daily contact, then returns one mean
+    center per index as a dict
 
     Parameters:
     -> agent: Agent whose social targets are being computed
@@ -53,25 +54,46 @@ def compute_social_targets_for_agent(agent, previous_day_contacts, agents_by_id,
     -> agents_by_id: quick lookup for contact Agent objects
     -> appliance_names: appliances to compute targets for
 
-    Returns a dict with mean peak center of all contacts for that appliance
+    Returns a dict keyed by appliance name, where each value is itself a dict
+    mapping peak index to mean center: {appliance: {0: mean_peak_0, 1: mean_peak_1, ...}}
+    or None if no contacts used the appliance yesterday
     """
     social_targets = {}  #will hold one entry per appliance
     contact_ids = previous_day_contacts[agent.agent_id]  #get this agent's daily contacts from yesterday
 
     for appliance in appliance_names:
-        centers = []  #collect all peak centers from all contacts for this appliance
+        #determine how many peaks this agent has for this appliance
+        agent_peaks = agent.previous_peak_lists.get(appliance, [])
+        n_peaks = len(agent_peaks)
+
+        if n_peaks == 0:
+            social_targets[appliance] = None
+            continue
+
+        #collect centers separately per peak index across all contacts
+        #centers_by_index maps peak index -> list of all centers contributed by contacts for that index
+        centers_by_index = {i: [] for i in range(n_peaks)}
         for contact_id in contact_ids:
             contact = agents_by_id[contact_id]  #look up the contact Agent object
-            
-            #use previous peaklists, based on the day of interaction
-            #use .get() so contacts without EV are skipped
-            for c, h, w in contact.previous_peak_lists.get(appliance, []):
-                centers.append(c)  #add the center of this peak
 
-        if centers:
-            social_targets[appliance] = float(np.average(centers)) #average the centers
-        else:
-            social_targets[appliance] = None  #no contacts used this appliance (e.g. EV for non-EV contacts)
+            #use .get() so contacts without EV or with fewer peaks are skipped gracefully
+            contact_peaks = contact.previous_peak_lists.get(appliance, [])
+            for i, (c, h, w) in enumerate(contact_peaks):
+                if i < n_peaks:
+                    centers_by_index[i].append(c)  #route this contact's center to the correct index bucket
+
+        #compute one mean per peak index, None if no contacts contributed to that index
+        #result is a dict {peak_index: mean_center_or_None} so the caller can look up by index
+        target_dict = {}
+        has_any = False
+        for i, centers in centers_by_index.items():
+            if centers:
+                target_dict[i] = float(np.mean(centers))
+                has_any = True
+            else:
+                target_dict[i] = None  #no contact data for this peak index
+
+        social_targets[appliance] = target_dict if has_any else None
 
     return social_targets
 
@@ -207,16 +229,15 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
         if len(subset) > 0: #could input no agents of some group in run model
             group_stats[f"flex_{key}_mean"] = float(subset["individual_flexibility"].mean())
             group_stats[f"cost_norm_{key}_mean"] = float(subset["individual_cost_normalized"].mean())
-            group_stats[f"adjustment_{key}_mean"] = float(subset["individual_adjustment"].mean())
-            group_stats[f"price_advantage_{key}_mean"] = float(subset["price_advantage"].mean())  
-            group_stats[f"savings_per_flex_{key}_mean"]   = float(subset["savings_per_flex"].mean(skipna=True)) #skipna for day-0 NaN
+            group_stats[f"discomfort_{key}_mean"] = float(subset["individual_adjustment"].mean())
+            group_stats[f"cost_flex_ratio_{key}_mean"] = float(subset["savings_per_flex"].mean(skipna=True)) #skipna for day-0 NaN
             group_stats[f"n_{key}"] = int(len(subset))
         
         else:
             #group not present in this run, fill with NaN to avoid errors
             group_stats[f"flex_{key}_mean"] = float("nan")
             group_stats[f"cost_norm_{key}_mean"] = float("nan")
-            group_stats[f"adjustment_{key}_mean"] = float("nan")
+            group_stats[f"discomfort_{key}_mean"] = float("nan")
             group_stats[f"cost_flex_ratio_{key}_mean"] = float("nan")
             group_stats[f"n_{key}"] = 0
 
