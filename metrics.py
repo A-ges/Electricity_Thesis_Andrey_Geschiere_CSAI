@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks
+from scipy.signal import argrelmin
+
 
 """
 This file computes all relevant metrics to answer my RQs and some for model tweaking and functions that help making agent shifting decisions
@@ -32,7 +33,6 @@ def find_local_price_minima(dayprices):
     Falls back to the global minimum if no local minima are detected
     Returns a list of integer hour indices with low target prices for the shifts
     """
-    from scipy.signal import argrelmin
     prices = np.array(dayprices, dtype=float)  #convert to numpy array for argrelmin
     minima = argrelmin(prices, order=1)[0].tolist()  #find all strict local minima
     if not minima:
