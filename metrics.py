@@ -16,7 +16,7 @@ Cost metric design note:
     -> Costs are computed on appliance load ONLY (baseline is subtracted)
     -> The normalized cost (pricing units per kWh of appliance load) is comparable across agents
        regardless of consumption characteristics
-    -> Pricing units are EPEX-derived values divided by 10 as set in price_estimator.py
+    -> Pricing units are EPEX-derived values divided by 10 as seen in price_estimator.py
     -> They are consistent for relative comparison but do not correspond to real world consumer costs
 """
 
@@ -36,7 +36,7 @@ def find_local_price_minima(dayprices):
     prices = np.array(dayprices, dtype=float)  #convert to numpy array for argrelmin
     minima = argrelmin(prices, order=1)[0].tolist()  #find all strict local minima
     if not minima:
-        #rare fallback: treat the single cheapest hour as the only target if monotone or extremely flat price curve
+        #treat the single cheapest hour as the only target if monotone or extremely flat price curve
         minima = [int(np.argmin(prices))]
     return minima
 
@@ -98,21 +98,22 @@ def compute_social_targets_for_agent(agent, previous_day_contacts, agents_by_id,
     return social_targets
 
 
-def compile_agent_day_metrics(agent, day, load, prices):
+def compile_agent_day_metrics(agent, day, load, prices, is_last_day=False):
     """
     Get all per-agent metrics for a simulated day
 
     Parameters:
-    -> An agent
+    -> agent: An agent
     -> day: day number where the first day = 0
     -> load: agent's 15-min load profile for this day
     -> prices: price per 15-min slot (each hour price repeated 4 times)
+    -> is_last_day: True only on the final simulated day; if False, individual_adjustment is NaN [CHANGED]
 
     Returns a dict of metrics, will be one row in df_agent_daily
     """
     baseline = agent.appliance_chars["Baseline"]["power_kw"]  #this agent's always-on power draw
 
-    #remove constant baseline from the load to isolate bahavior driven appliance consumption
+    #remove constant baseline from the load to isolate behavior driven appliance consumption
     appliance_load = load - baseline
 
     #multiply by 0.25 because each slot is 15 minutes = 0.25 hours
@@ -121,7 +122,7 @@ def compile_agent_day_metrics(agent, day, load, prices):
     raw_cost = float((appliance_load * prices).sum() * 0.25)
 
     #normalized cost: pricing units per kWh of appliance load
-    #dividing by energy makes the cost comparable across agents regardless of total consumption (which could be different because of the sampling in agent.py
+    #dividing by energy makes the cost comparable across agents regardless of total consumption
     if total_appliance_kwh > 0.0: 
         normalized_cost = raw_cost / total_appliance_kwh
     else:
@@ -132,8 +133,10 @@ def compile_agent_day_metrics(agent, day, load, prices):
     price_flex = agent.last_price_flexibility
     social_flex = agent.last_social_flexibility
 
-    #cumulative drift of peak centers away from the agent's own day-0 preferred positions
-    adjustment = agent.compute_adjustment()
+    if is_last_day:
+        adjustment = agent.compute_adjustment()
+    else:
+        adjustment = float("nan")
 
     #to compute tradeoff
     mean_price_today = float(prices.mean())
@@ -142,12 +145,12 @@ def compile_agent_day_metrics(agent, day, load, prices):
     else:
         agent_effective_price = mean_price_today  #edge case if no appliance consumption
  
-    price_advantage = mean_price_today - agent_effective_price #-> did agent pay above or below daily avg price? if + = less than the average, - = more than average
+    price_advantage = mean_price_today - agent_effective_price #positive = paid less than average, negative = more
  
-    #savings_per_flex: total cost savings relative to average price, divided by total hours of peak center shift
+    #savings_per_flex: cost savings relative to average price, divided by total hours of peak center shift
     #-> "how much monetary benefit did this agent get per unit of daily schedule disruption?"
     if total_flex > 0.0:
-        savings_per_flex = price_advantage / total_flex  #comparable, because relative
+        savings_per_flex = price_advantage / total_flex
     else:
         savings_per_flex = float("nan")
 
@@ -198,6 +201,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
     -> agent_records: output of compile_agent_day_metrics
 
     Returns a dict of metrics = one row for df_daily
+
     """
     prices_arr = np.array(prices) 
     peak_load = float(aggregate.max())  #highest 15-min demand of the day in kW
@@ -216,21 +220,25 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
 
     #System-level behavioral metrics from individual agent records 
     df_agents = pd.DataFrame(agent_records) #convert list of dicts to df
-    accum_flexibility = float(df_agents["individual_flexibility"].sum()) #get agents shifts today
-    accum_cost_norm = float(df_agents["individual_cost_normalized"].mean()) #mean normalized cost across all agents
-    mean_adjustment = float(df_agents["individual_adjustment"].mean()) #mean cumulative adjustment across all agents
-    mean_price_advantage = float(df_agents["price_advantage"].mean())
+
+    total_flexibility = float(df_agents["individual_flexibility"].sum()) #sum of all agents' shifts today
+    mean_cost_norm = float(df_agents["individual_cost_normalized"].mean()) #mean normalized cost across all agents
+    mean_adjustment = float(df_agents["individual_adjustment"].mean()) #mean cumulative adjustment across all agents (NaN on non-last days)
+    mean_price_advantage = float(df_agents["price_advantage"].mean()) #positive = agents on average paid below daily mean
 
     #Per-dominant-group metrics for comparison
     group_stats = {}
     for group in ["Habit-driven", "Price-responsive", "Social-influenced"]:
         subset = df_agents[df_agents["dominant_group"] == group]  #filter to only this group's rows
-        key = group.lower().replace("-", "_").replace(" ", "_")  #change col names to lower case with a -, for consistency
+        key = group.lower().replace("-", "_").replace(" ", "_")  #change col names to lower case with -, for consistency
         if len(subset) > 0: #could input no agents of some group in run model
             group_stats[f"flex_{key}_mean"] = float(subset["individual_flexibility"].mean())
             group_stats[f"cost_norm_{key}_mean"] = float(subset["individual_cost_normalized"].mean())
+            #discomfort = mean adjustment; NaN on non-last days because individual_adjustment is NaN then
             group_stats[f"discomfort_{key}_mean"] = float(subset["individual_adjustment"].mean())
-            group_stats[f"cost_flex_ratio_{key}_mean"] = float(subset["savings_per_flex"].mean(skipna=True)) #skipna for day-0 NaN
+            #CHANGED: renamed from cost_flex_ratio_{key}_mean to savings_per_flex_{key}_mean
+            #matches the agent-level column name savings_per_flex and more clearly describes the metric
+            group_stats[f"savings_per_flex_{key}_mean"] = float(subset["savings_per_flex"].mean(skipna=True))
             group_stats[f"n_{key}"] = int(len(subset))
         
         else:
@@ -238,7 +246,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
             group_stats[f"flex_{key}_mean"] = float("nan")
             group_stats[f"cost_norm_{key}_mean"] = float("nan")
             group_stats[f"discomfort_{key}_mean"] = float("nan")
-            group_stats[f"cost_flex_ratio_{key}_mean"] = float("nan")
+            group_stats[f"savings_per_flex_{key}_mean"] = float("nan")
             group_stats[f"n_{key}"] = 0
 
     #assemble the final record dict for this day
@@ -256,9 +264,10 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
         "price_min": price_min,
         "price_max": price_max,
         "price_range": price_range,
-        "accumulative_flexibility": accum_flexibility,
-        "accumulative_cost_norm_mean": accum_cost_norm,
-        "mean_adjustment": mean_adjustment}
+        "total_flexibility": total_flexibility,
+        "mean_cost_norm": mean_cost_norm,
+        "mean_adjustment": mean_adjustment,
+        "mean_price_advantage": mean_price_advantage}
     record.update(group_stats)  #merge in the per group stats
     return record
 
@@ -266,17 +275,16 @@ def build_dataframes(agent_day_records, day_records):
     """
     Convert the two records collected during simulation into two dfs
     Also adds a cumulative column to df_agent_daily:
-    -> cumulative_flexibility: total of flexibility per agent across days
+    -> cumulative_flexibility: running sum of individual_flexibility per agent across days
+       useful for tracking the total grid service each household has provided
     """
-    df_agent_daily = pd.DataFrame(agent_day_records)  #one row per agent per day)
+    df_agent_daily = pd.DataFrame(agent_day_records)  #one row per agent per day
     df_daily = pd.DataFrame(day_records) #one row per day
     
-    df_agent_daily = df_agent_daily.sort_values(["day", "agent_id"]).reset_index(drop=True)
+    df_agent_daily = df_agent_daily.sort_values(["agent_id", "day"]).reset_index(drop=True)
     df_daily = df_daily.sort_values("day").reset_index(drop=True)
 
-    #add cumulative flexibility per agent over the simulation period
-    #useful for tracking the total grid service each household has provided
     df_agent_daily["cumulative_flexibility"] = (
-        df_agent_daily.sort_values("day").groupby("agent_id")["individual_flexibility"].cumsum().values)
+        df_agent_daily.groupby("agent_id")["individual_flexibility"].cumsum())
 
     return df_agent_daily, df_daily
