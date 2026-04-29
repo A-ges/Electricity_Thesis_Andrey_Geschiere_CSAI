@@ -12,9 +12,9 @@ Each Agent object represents one household in the simulation. It has:
        -> Passed to load_profile.build_daily_load() every simulated day
 
 Shifting order each day:
-    -> Day 0 only: habit shift is applied once at init to set initial preferred times
-    -> Day 1+: price shift moves peaks toward the nearest cheap hour
-    -> Day 1+: social shift moves peaks toward the weighted mean of yesterday's contacts
+    -> Day 0 only: habit shift is applied once at init, adjusting peak height and width only
+    -> Day 1+: price shift moves peak centers toward the nearest cheap hour
+    -> Day 1+: social shift moves peak centers toward the mean of yesterday's contacts for that same peak
     -> Heights and widths are never changed after day 0 initialization
 """
 
@@ -22,7 +22,7 @@ Shifting order each day:
 #They are used as defaults in run_model.py and can be overridden there as parameter, used to tweak the model in development and gives some more flexibility for generalisation
 #Settled on bottom values based on face validity, I settled on two criteria:
 #1. Social agents stay put in cases of high habit, but shift along to some extent if there are some price agents present
-#2. Shouldn’t be too volatile over a 30 day period, bottom values give a gradual shift
+#2. Shouldn't be too volatile over a 30 day period, bottom values give a gradual shift
 # -> Finding exact values would be a good point for future behavioral study
 #     -> Knowledge required for empirically grounded estimate: How do social agents shift relative to price agents (quantified) and how fast do they shift per day 
 
@@ -82,7 +82,7 @@ class Agent:
         self.soc_suc = float(soc_suc)
         self.rng = rng  
         
-        #sample fixed appliance hardware charcteristics once (power draw, runtime, max daily uses)
+        #sample the fixed appliance hardware characteristics once (power draw, runtime, max daily uses)
         self.appliance_chars, self.has_ev = sample_agent_appliances(rng)
 
         #personal Gaussian peak lists, one list of (center, height, width) tuples per appliance
@@ -99,7 +99,7 @@ class Agent:
         self.previous_overflow = None
 
         #shift magnitude trackers for metrics
-        self.last_total_flexibility = 0.0  #total absolute peak center shift across all appliances today
+        self.last_total_flexibility = 0.0  #equals to last_price_flexibility + last_social_flexibility
         self.last_price_flexibility = 0.0  #portion of the total shift caused by the price signal
         self.last_social_flexibility = 0.0  #portion of the total shift caused by the social signal
 
@@ -108,7 +108,8 @@ class Agent:
 
     def initialize_peaks(self, epsilon_habit):
         """
-        Set up personal peak lists at the start with habit parameter
+        Set up personal peak lists at the start with habit parameter.
+        Habit only adjusts peak magnitude and width
         """
         for name, baseline_peaks in baseline_peak_tuples.items():
             if name == "EV" and not self.has_ev:  #skip EV peaks for agents without an EV
@@ -131,7 +132,7 @@ class Agent:
             distribution = multi_peak_distribution(peaks)
             self.current_distributions[name] = distribution
 
-        #Store day-0 peak centers for the flexibility metric
+        #Store day-0 peak centers for the adjustment metric (called only on the final day)
         self.initial_peak_centers = {}
         for name, peaks in self.current_peak_lists.items():
             centers_list = []
@@ -149,7 +150,7 @@ class Agent:
             social_delta = soc_suc    * appliance_rate * epsilon_social * (neighbor_mean_center_i - center)
             new_center   = clip(center + price_delta   + social_delta, 0.0, 23.0)
 
-        Only peak centers change, heights and widths are fixed after initialization
+        Only peak centers change, heights and widths are fixed after initialization.
 
         Parameters:
         -> price_minima: hour indices of local price minima in todays prices 
@@ -161,7 +162,6 @@ class Agent:
         -> epsilon_price: can be passed in run_model but a set parameter at top of this file
         -> epsilon_social: can be passed in run_model but a set parameter at top of this file
         """
-        total_flex = 0.0  #will sum up total absolute shift across all peaks and appliances
         price_flex = 0.0  #will sum up the price-driven portion of all shifts
         social_flex = 0.0  #will sum up the social-driven portion of all shifts
 
@@ -197,15 +197,11 @@ class Agent:
                 else:
                     s_delta = 0.0  #no social information available for this appliance peak
 
-                #Add both deltas simultaneously and clip to keep the center within the 24-hour clock
+                #Add both deltas and clip to keep the center within the 24-hour clock
                 new_center = float(np.clip(center + p_delta + s_delta, 0.0, 23.0))
 
-                #actual_shift is what really happened after the clip
-                #unclipped p_delta and s_delta are stored separately to attribute contributions
-                actual_shift = abs(new_center - center)
-                total_flex += actual_shift        #how much this peak actually moved
-                price_flex += abs(p_delta)        #price contribution before clipping
-                social_flex += abs(s_delta)       #social contribution before clipping
+                price_flex += abs(p_delta)        
+                social_flex += abs(s_delta)       
 
                 new_peaks.append((new_center, height, width))
 
@@ -218,28 +214,32 @@ class Agent:
             #Recompute distributions from new peaks
             self.current_distributions[name] = multi_peak_distribution(peaks)
 
-        #save shift magnitudes so metrics.py can read them without recomputing
-        self.last_total_flexibility = total_flex
         self.last_price_flexibility = price_flex
         self.last_social_flexibility = social_flex
+        self.last_total_flexibility = price_flex + social_flex  
 
 
     def compute_adjustment(self):
         """
-        Compute this agent's cumulative behavioral adjustment
+        Compute this agent's normalized schedule displacement from its day-0 preferred times.
 
-        Returns the sum of abs(current_center - initial_center) across all peaks and appliances.
-        -> A higher value means the agent is running appliances further from their preferred/initial times
-        -> This is a measure for how much the price and social signals have changed normal routines
-        -> It is cumulative, measures total drift from day 0, not just yesterday's shift (which is flexibility)
+        This is a final day metric. It is only called on the last simulated day by
+        compile_agent_day_metrics in metrics.py and NaN is stored for all other days
+        Adjustent: how far has this agent's schedule drifted from its original routine
+        by the end of the simulation?
+
+        Returns: mean absolute center displacement in hours per peak (>= 0.0), or 0.0 if no peaks.
         """
         total = 0.0
+        n_peaks = 0
         for name, peaks in self.current_peak_lists.items():
-            initial_centers = self.initial_peak_centers.get(name, [])  #day-0 preferred positions
+            initial_centers = self.initial_peak_centers.get(name, [])  #day-0 original positions
             for i, (center, height, width) in enumerate(peaks):
                 if i < len(initial_centers):
-                    total += abs(center - initial_centers[i])  #add distance from preferred center
-        return total
+                    total += abs(center - initial_centers[i])  #add distance from original center
+                    n_peaks += 1  #increment for each peak counted
+
+        return total / n_peaks
 
 
     def __repr__(self):
