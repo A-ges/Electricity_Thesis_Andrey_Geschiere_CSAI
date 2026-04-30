@@ -14,7 +14,7 @@ Each Agent object represents one household in the simulation. It has:
 Shifting order each day:
     -> Day 0 only: habit shift is applied once at init, adjusting peak height and width only
     -> Day 1+: price shift moves peak centers toward the nearest cheap hour
-    -> Day 1+: social shift moves peak centers toward the mean of yesterday's contacts for that same peak
+    -> Day 2+: social shift moves peak centers toward the mean of yesterday's contacts for that same peak (only works from day 2, because they can base their shift on the price shifters of day one (price initiates movement)))
     -> Heights and widths are never changed after day 0 initialization
 """
 
@@ -195,14 +195,14 @@ class Agent:
                 if social_target is not None and social_target[i] is not None:
                     s_delta = self.soc_suc * rate * epsilon_social * (social_target[i] - center)
                 else:
-                    s_delta = 0.0  #no social information available for this appliance peak
+                    s_delta = 0  #no social information available for this appliance peak
 
                 #Add both deltas and clip to keep the center within the 24-hour clock
                 new_center = float(np.clip(center + p_delta + s_delta, 0.0, 23.0))
 
                 price_flex += abs(p_delta)        
                 social_flex += abs(s_delta)       
-
+            
                 new_peaks.append((new_center, height, width))
 
             new_peak_lists[name] = new_peaks   
@@ -228,7 +228,7 @@ class Agent:
         Adjustent: how far has this agent's schedule drifted from its original routine
         by the end of the simulation?
 
-        Returns: mean absolute center displacement in hours per peak (>= 0.0), or 0.0 if no peaks.
+        Returns: mean absolute center displacement in hours per peak, or 0.0 if no peaks, it is normalized by npeaks.
         """
         total = 0.0
         n_peaks = 0
