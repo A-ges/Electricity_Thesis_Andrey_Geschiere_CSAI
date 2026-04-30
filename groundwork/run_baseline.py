@@ -242,7 +242,7 @@ def build_daily_load(agent_appliances, has_ev, random_state, previous_overflow=N
         dist = baselines[name].copy()             
         start_hours = random_state.choice(np.arange(24), size=n_uses, p=dist)
 
-        #Addition, let agent sample 5 times again for new hours, if an hour was already chosen to prevent lot of duplicate use and create more logical, over-the-day behavior
+        #Let agent sample 5 times again for new hours, if an hour was already chosen to prevent lot of duplicate use and create more logical, over-the-day behavior
         used_hours = []
         for hour in start_hours:
             for i in range(5):
