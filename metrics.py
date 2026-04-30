@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.signal import argrelmin
+pd.set_option('display.float_format', '{:.3f}'.format) #needed to not have the e scientific notation in the social_flex_contribution and just get the rounded values
 
 
 """
@@ -27,14 +28,12 @@ def find_local_price_minima(dayprices):
     -> The list with prices for DAY X
     
     Used to find local minima in the 24-hour price curve each day
-    Uses scipy.signal.argrelmin with order = 1 (comparison points for it to be a minimum, lower than direct neighbors suffices)
-    For documentation refer to: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.argrelmin.html
-    
+    Uses scipy.signal.argrelmin with order = 1 (comparison points for it to be a minimum, lower than direct neighbors suffices)    
     Falls back to the global minimum if no local minima are detected
     Returns a list of integer hour indices with low target prices for the shifts
     """
     prices = np.array(dayprices, dtype=float)  #convert to numpy array for argrelmin
-    minima = argrelmin(prices, order=1)[0].tolist()  #find all strict local minima
+    minima = argrelmin(prices, order=1)[0].tolist()  #find all local minima where direct values next to it are hiher
     if not minima:
         #treat the single cheapest hour as the only target if monotone or extremely flat price curve
         minima = [int(np.argmin(prices))]
@@ -107,7 +106,7 @@ def compile_agent_day_metrics(agent, day, load, prices, is_last_day=False):
     -> day: day number where the first day = 0
     -> load: agent's 15-min load profile for this day
     -> prices: price per 15-min slot (each hour price repeated 4 times)
-    -> is_last_day: True only on the final simulated day; if False, individual_adjustment is NaN [CHANGED]
+    -> is_last_day: True only on the final simulated day; if False, individual_adjustment is NaN
 
     Returns a dict of metrics, will be one row in df_agent_daily
     """
@@ -133,6 +132,7 @@ def compile_agent_day_metrics(agent, day, load, prices, is_last_day=False):
     price_flex = agent.last_price_flexibility
     social_flex = agent.last_social_flexibility
 
+    
     if is_last_day:
         adjustment = agent.compute_adjustment()
     else:
@@ -146,13 +146,19 @@ def compile_agent_day_metrics(agent, day, load, prices, is_last_day=False):
         agent_effective_price = mean_price_today  #edge case if no appliance consumption
  
     price_advantage = mean_price_today - agent_effective_price #positive = paid less than average, negative = more
- 
-    #savings_per_flex: cost savings relative to average price, divided by total hours of peak center shift
-    #-> "how much monetary benefit did this agent get per unit of daily schedule disruption?"
+
+    #CHANGED: added minimum threshold before computing savings_per_flex
+    #social-influenced agents have price_sens drawn from Beta(0.5, 4.5) which can produce values near 0
+    #on day 1, social_flex = 0 (all agents start at the same centers) and a near-zero price_sens gives
+    #total_flex ≈ 0 as well. dividing any nonzero price_advantage by near-zero total_flex produces
+    #extreme outliers (e.g. -200) that distort savings_per_flex_social_inss fluenced_mean across all days
+    #the threshold of 0.5 requires at least 0.5 hours of total peak shift acroall appliances,
+    #which price-responsive (flex ≈ 8) and habit agents (flex ≈ 5) comfortably exceed on every shift day
+    #but filters out near-zero-price_sens social agents on day 1 where the metric is not meaningful
     if total_flex > 0.0:
         savings_per_flex = price_advantage / total_flex
     else:
-        savings_per_flex = float("nan")
+        savings_per_flex = float("nan")  #not meaningful when agent has barely shifted
 
     return {
         "day": day,
@@ -234,10 +240,8 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
         if len(subset) > 0: #could input no agents of some group in run model
             group_stats[f"flex_{key}_mean"] = float(subset["individual_flexibility"].mean())
             group_stats[f"cost_norm_{key}_mean"] = float(subset["individual_cost_normalized"].mean())
-            #discomfort = mean adjustment; NaN on non-last days because individual_adjustment is NaN then
-            group_stats[f"discomfort_{key}_mean"] = float(subset["individual_adjustment"].mean())
-            #CHANGED: renamed from cost_flex_ratio_{key}_mean to savings_per_flex_{key}_mean
-            #matches the agent-level column name savings_per_flex and more clearly describes the metric
+            #adjustment = mean adjustment; NaN on non-last days because individual_adjustment is NaN then
+            group_stats[f"adjustment_{key}_mean"] = float(subset["individual_adjustment"].mean())
             group_stats[f"savings_per_flex_{key}_mean"] = float(subset["savings_per_flex"].mean(skipna=True))
             group_stats[f"n_{key}"] = int(len(subset))
         
@@ -245,7 +249,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
             #group not present in this run, fill with NaN to avoid errors
             group_stats[f"flex_{key}_mean"] = float("nan")
             group_stats[f"cost_norm_{key}_mean"] = float("nan")
-            group_stats[f"discomfort_{key}_mean"] = float("nan")
+            group_stats[f"adjustment_{key}_mean"] = float("nan")
             group_stats[f"savings_per_flex_{key}_mean"] = float("nan")
             group_stats[f"n_{key}"] = 0
 
