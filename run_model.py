@@ -311,13 +311,13 @@ def run_model(
         day_records.append(day_record) #appended to the full list for df_daily
 
         #print a summary line for each day so progress is visible
-        #CHANGED: renamed accumulative_flexibility key to total_flexibility to match the new column name
         print(
-            f"Day {day + 1:>3}/{days}  |  "
-            f"peak: {aggregate.max():.2f} kW  |  "
-            f"mean: {aggregate.mean():.2f} kW  |  "
-            f"PAR: {day_record['par']:.2f}  |  "
-            f"flex: {day_record['total_flexibility']:.2f}  |  "
+            f"Day {day + 1} / {days} | "
+            f"peak: {aggregate.max():.2f} kW | "
+            f"mean: {aggregate.mean():.2f} kW | "
+            f"PAR: {day_record['par']:.2f} | "
+            f"flex: {day_record['total_flexibility']:.2f} | "
+            f"norm_flex: {day_record['total_flexibility']/n:.2f} | " 
             f"price_mean: {np.mean(current_prices_24h):.2f}")
 
         current_prices_24h = next_prices_24h   #tomorrow uses today's estimated prices
