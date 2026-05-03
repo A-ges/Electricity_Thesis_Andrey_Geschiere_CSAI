@@ -110,35 +110,35 @@ model (MODEL NAME + SOURCE) was used to improve the author's original content, f
 
 \section{Introduction} \label{sec:introduction}
 
-As global electricity use increases and the integration of sustainable energy becomes more urgent, maintaining the stability and reliability of electricity grids becomes an increasingly complex challenge. (Akdemir et al., 2025; Dora et al., 2025; Siebert et al., 2017) This complexity is strengthened by the misalignment between the generation of renewable energy sources (RES) and concentrated demand, resulting in damaging load peaks, avoidable maintenance costs, and local grid shutdowns. (Eid et al., 2016; Tostado-Véliz et al., 2021) Such demand peaks are a result of synchronization, which is defined as the temporal and spatial alignment of behavior among interacting components within a complex system (Hudson et al., 2022). These synchronous patterns emerge within the electricity context as individual behaviors align across predictable timeframes. First, a morning ramp-up occurs as households awake and start their daily preparations. A demand minimum is then observed during working hours, reflecting the collective shift away from the residential setting. The cycle concludes with a global maximum in the evening, caused by the collective activation of high-power appliances and electric vehicle chargers as people return to their homes. This rhythm in residential demand is predictable and generalizes across western European countries. (Anvari et al., 2022; Liander, 2024) Despite this predictability, the temporal disconnect between surplus RES and aggregate demand poses a challenge for Distribution System Operators (DSOs) to achieve a optimized, cost-effective, and future-proof usage of excess renewable power. Consequently, nonrenewable fuels still constitute the majority of continental energy supply. (Eurostat, 2026)
+As global electricity use increases and the integration of sustainable energy becomes more urgent, maintaining the stability and reliability of electricity grids becomes an increasingly complex challenge (Akdemir et al., 2025; Dora et al., 2025; Siebert et al., 2017). This complexity is strengthened by the misalignment between the generation of renewable energy sources (RES) and concentrated demand, resulting in damaging load peaks, avoidable maintenance costs, and local grid shutdowns (Eid et al., 2016; Tostado-Véliz et al., 2021). Such demand peaks are a result of synchronization, which is defined as the temporal and spatial alignment of behavior among interacting components within a complex system (Hudson et al., 2022). These synchronous patterns emerge within the electricity context as individual behaviors align across predictable timeframes. First, a morning ramp-up occurs as households awake and start their daily preparations. A demand minimum is then observed during working hours, reflecting the collective shift away from the residential setting. The cycle concludes with a global maximum in the evening, caused by the collective activation of high-power appliances and electric vehicle chargers as people return to their homes. 
 
-SYNC = MOTORING THESE PEAKS< WOW REALLY BEHAVIOR DRIVEN, WHAT CAUSES BEHAVIOR, MY 3 THINGS BUT LOAD SHIFTING IS THE SOLUTION
+This rhythm in residential demand is predictable and generalizes across Western European countries (Anvari et al., 2022; Liander, 2024). Despite this predictability, the temporal disconnect between surplus RES and aggregate demand poses a challenge for Distribution System Operators (DSOs) to achieve an optimized, cost-effective, and future-proof usage of excess renewable power. Consequently, nonrenewable fuels still constitute the majority of the European energy supply (Eurostat, 2026). Given the European Union’s (EU) legal commitment to achieve climate neutrality by 2050 and its identification of "energy efficiency" as a core pillar of this transition, fulfilling this target requires addressing the behavior that drives synchronization (Consilium, 2026). Ultimately, it is these behavioral factors that compound into this current state of "energy inefficiency". The EU recognized this with their "Energy Efficiency First Paradigm", which promotes the opportunities of demand response (European Climate Foundation, 2016). Demand Response (DR), as defined by Wohlfarth et al. (2020), refers to the changing of consumption patterns to optimise the usage of energy supply. With DR playing a key role in the RES transition, many countries employ various strategies to change consumer behavior. 
 
-With a doubling of global energy demand since 2000. Gas and Coal still being the leading energy sources with far distance (dora)
+A fundamental prerequisite to these strategies is the widespread installation of smart meters. A smart meter records energy usage data at a given interval and provides usage data to both consumers and DSOs (Zhou AND Brown, 2017). Installation of these devices facilitates the collection of the granular data necessary for variable pricing. In numerous European countries, such as Sweden, Norway, Denmark, Germany, and the Netherlands, widespread smart meter roll-outs pave the way for a shift towards variable priced energy systems (Eid 2016; Zhou AND Brown, 2017; Rijksinspectie Digitale Infrastructuur, 2025). Variable energy contract architectures can differ vastly, ranging from dynamic or static hour-by-hour tracking to seasonal price adjustments. Regardless of the specific structure, these contracts generally create a win-win scenario for both parties (Johanning et al., 2024). The consumer lowers their bill by shifting consumption to periods of high renewable generation, allowing the DSO to utilize surplus energy. Consequently, the consumer draws less power during the evening peak, which relieves the grid operator of meeting a demand surplus when the system is at its most strained. Despite their growing relevance, the share of households on a dynamic contract form a market minority, with showing a 27\% adoption rate across Europe. (ACER-CEER, 2024) However, with these promising benefits and institutional support, adoption of dynamic pricing constructs is on an upward trajectory (Johanning et al., 2024). 
 
+Understanding the implications of such a transition, while keeping the heterogeneous behavioral drivers in mind requires a methodology that can capture both system- and household-level behavior. Agent Based Modeling (ABM) provides an ideal framework for analyzing both scopes within a complex system (Wilensky AND Rand, 2015). The feasibility of this methodology within the energy context is demonstrated by Williams et al. (2025), who demonstrated that neighborhood-level electricity demand can be modeled with high fidelity, often staying within a 1-4\% margin of actual data. Plenty of case studies investigate ABM feasibility in simulating and predicting demand, but research into the effects of heterogeneous- and behavioral aspects remain limited.
 
+\medskip
 
-Here you write the introduction. Start with briefly describing the research domain, why the topic is relevant, and current state-of-the-art by referencing pertinent research articles. Then, state your specific research goals/questions (you can separate them as shown below), followed by a one-paragraph summary of your findings. Discuss how answering your research questions can produce scientific relevance (domain insights) and societal relevance (real-world applications and/or benefits). 
+This study will examine the effects of diverse population compositions and their roles within those populations. Specifically distinguishing between three interacting behavioral profiles: 
 
-You can refer to chapters like the current Section~\ref{sec:introduction}. If you want to list research questions it's probably best to use \texttt{quote} and/or \texttt{itemize}, like so:
+(1) Habit-driven agents, who concentrate their behavior on times most familiar to them with, little DR opportunity. 
 
-\begin{quote}
-\emph{To what extent we define a main research question?}
-\end{quote}
+(2) Price-responsive agents, who shift their load towards times of local pricing minima. 
 
-\noindent The sub-questions can be listed seperately, as such:
+(3) Socially-influenced agents, less strict habitual agents with the ability to gradually shift towards adaptation of price-responsive behavior, if this is observed within their network.  
+
+\medskip
+
+This agent-based framework captures the dynamics between ingrained habits and external DR influences aimed at behavioral change. It provides the means to see how heterogeneous households aggregate into system-wide effects. To analyze these dynamics, this thesis asks the following research questions:
 
 \begin{itemize}
     \item[RQ1] \emph{How do different household behavioral decision
 architectures (habit-driven, price-responsive,
-socially influenced) affect flexibility, and cost-comfort
-trade-offs within the ABM?}
-    \item[RQ2] \emph{How do different configurations of heterogeneous households
-influence aggregate load and flexibility patterns, peak formation,
-and overall grid stability at the system level?}
+socially-influenced) affect flexibility, adjustment, and cost-comfort
+trade-offs within an ABM?}
+    \item[RQ2] \emph{How do different configurations of heterogeneous households influence aggregate load, flexibility patterns, costs, and overall grid stability at the system level?}
 \end{itemize}
-
-\noindent Or, format it as you desire (tip: you can nest \texttt{itemize} as well). You can alternate \emph{emph} and \textbf{textbf} however you wish. This should cover most of the things required for the introduction.
 
 \section{Related Work}
 
@@ -148,6 +148,7 @@ Copy paste BibTeX code\footnote{Using e.g. the quote icon in GScholar, then BibT
 
 \section{Methods}
 
+WHY HOURLY
 Here you describe your methodology in sufficient detail for reproducibility, you also aim to motivate the choices made, i.e., the chosen methods should be appropriate for your research goals, and this alignment should be clearly explained. 
 
 For human subjects studies, the sub-sections may include: \textbf{Participants} (i.e., sample size, participant demographics, how participants were recruited, whether informed consent was sought), \textbf{Stimuli} (i.e., what the stimuli/materials consisted of and how they were obtained or created), \textbf{Experimental Design} (i.e., within-subjects/between-subjects, independent and dependent variables and their measurement), \textbf{Procedure} (i.e., task description), and \textbf{Analysis} (i.e., statistical tests applied, software used).
