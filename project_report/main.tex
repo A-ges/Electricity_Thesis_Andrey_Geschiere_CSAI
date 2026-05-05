@@ -140,13 +140,58 @@ trade-offs within an ABM?}
     \item[RQ2] \emph{How do different configurations of heterogeneous households influence aggregate load, flexibility patterns, costs, and overall grid stability at the system level?}
 \end{itemize}
 
+By answering these research questions, this thesis aims to bridge a scientific gap between technical grid modeling and behavioral science. Societally, these findings provide insights for DSOs and policymakers as Europe necessarily transitions towards dynamic pricing. Ultimately, this research could inform the design of demand response strategies for ensuring a future-proof electricity grid.
+
+SMALL RESULTS/CONCLUSION HERE
+
 \section{Related Work}
+\subsection{The Paradigm Shift} \label{subs:model}
+
+\subsection{Achievements in Demand Response} \label{subs:model}
+
+\subsection{Defining Usage Behavior} \label{subs:model}
+
+\subsection{ABM History within Energy Research} \label{subs:model}
+
+
+
+
+
+
+
+
+
 
 Here you provide a synthesis of the existing literature, comparing and drawing parallels across studies to establish the state-of-the-art. Cite relevant theories, models, and recent work. Describe what prior research has found, any contradicting findings or competing approaches. Identify any gaps or limitations in existing research and how your thesis potentially addresses these gaps in terms of methodology, data used, etc.
 
 Copy paste BibTeX code\footnote{Using e.g. the quote icon in GScholar, then BibTeX at the bottom.} and put it in \texttt{references.bib}. After, you can cite some work \citep{mackay2003information} -- using \texttt{\textbackslash citep}. You can refer to the author of e.g. \cite{minsky1961steps} directly like using \texttt{\textbackslash cite} (this does not work when using bracket-citation). If you use bracket-style,\footnote{Find the \texttt{natbib} part in the \texttt{main.tex} \LaTeX{} script.} you might want use \texttt{\textbackslash citeauthor} when citing, like: see \citeauthor{ananny2018seeing} \cite{ananny2018seeing}.  If you want to add pages you can use brackets in \texttt{\textbackslash citep[][p. 5]\{mackay2003information\}}, which looks like: \citep[][p. 5]{mackay2003information}. The first brackets can be used for things like \emph{see}, and \emph{e.g.}. If you want to cite multiple authors, simply comma-separate them (\texttt{\textbackslash citep\{\-minsky\-1961\-steps,\-mackay\-2003\-information\}}) and it will aggregate them automatically \citep{minsky1961steps,mackay2003information}.
 
 \section{Methods}
+
+The ABM built for this thesis simulates agent demand based on generalizable European data at a 15-minute granularity. Given a population setup, a network, a period and a random state, it produces reproducible data on (aggregate) load, energy pricing and agent behavioral variables. The model consists of five interacting components: the population of households defined by their behavioral architectures, appliance-level load profiles, a sampled daily network, a demand-responsive hour-price generator, and a shifting mechanism through which agents adjust their per-appliance usage probability on a daily basis. FIGURE X PROVIDES A SCHEMATIC OF THE FULL SIMULATION PIPELINE
+
+\subsection{Data Sources} \label{subs:data}
+The OpenSTEF Liander 2024 dataset was used thrice in the building of this model. 
+It provided 15-minute electricity demand measurements for 55 Dutch local distribution networks, EPEX day-ahead hourly prices and solar park generation measurements for five Dutch solar park stations (OpenSTEF, 2024). The demand measurements were used to calibrate the model on, the EPEX prices functioned as the baseline for the pricing model, and the solar measurements were used to calculate the elasticity factor within that pricing model. 
+
+A study by Yilmaz et al. (2017) delivered hourly switch-on probabilities, which in turn was derived from a 2011 survey on UK appliance usage (Department of Energy \& Climate Change, 2014). While dated, the dataset’s high granularity and veracity make it a solid foundation for modern studies when calibrated to reflect current energy trends (Yilmaz et al. 2017; Williams et al., 2025). 
+
+
+
+\subsection{The Heterogenous Population} \label{subs:population}
+
+\subsection{Appliance Usage} \label{subs:usage}
+
+\subsection{Price Generator} \label{subs:price}
+
+\subsection{Social Networks} \label{subs:networks}
+mention reali and the other studies that used this, falandays as well, why realistic
+
+\subsection{Shifting} \label{subs:shifting}
+
+\subsection{Metrics} \label{subs:metrics}
+
+\subsection{Technical Implementation} \label{subs:technical}
 
 WHY HOURLY
 Here you describe your methodology in sufficient detail for reproducibility, you also aim to motivate the choices made, i.e., the chosen methods should be appropriate for your research goals, and this alignment should be clearly explained. 
