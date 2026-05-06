@@ -174,14 +174,44 @@ The ABM built for this thesis simulates agent demand based on generalizable Euro
 The OpenSTEF Liander 2024 dataset was used thrice in the building of this model. 
 It provided 15-minute electricity demand measurements for 55 Dutch local distribution networks, EPEX day-ahead hourly prices and solar park generation measurements for five Dutch solar park stations (OpenSTEF, 2024). The demand measurements were used to calibrate the model on, the EPEX prices functioned as the baseline for the pricing model, and the solar measurements were used to calculate the elasticity factor within that pricing model. 
 
-A study by Yilmaz et al. (2017) delivered hourly switch-on probabilities, which in turn was derived from a 2011 survey on UK appliance usage (Department of Energy \& Climate Change, 2014). While dated, the dataset’s high granularity and veracity make it a solid foundation for modern studies when calibrated to reflect current energy trends (Yilmaz et al. 2017; Williams et al., 2025). 
-
-
+A study by Yilmaz et al. (2017) delivered the hourly switch-on probabilities, which in turn was derived from a 2011 survey on UK appliance usage (Department of Energy \& Climate Change, 2014). While dated, the dataset’s high granularity and veracity make it a solid foundation for modern studies when calibrated to reflect current energy trends (Yilmaz et al. 2017; Williams et al., 2025). Despite its comprehensive list of appliances, Electric Vehicle (EV) charging schedules were not included. The EV switch-on probability curve was therefore estimated from Robinson et al. (2013) Figure 6, which was measured around the same time and place as the appliance data.
 
 \subsection{The Heterogenous Population} \label{subs:population}
+The population consists of N household agents, where N is determined by a selected network. Each agent is assigned to one of the three behavioral groups, according to a configurable percentage split. Three continuous behavioral parameters are independently sampled per agent from group-specific Beta distributions: habit strength, price sensitivity, and social susceptibility. The Beta distribution is parameterized by a mean $\mu$ and concentration parameter $K$, where a higher $K$ produces a tighter distribution around $\mu$. Table \ref{tab:behavioral_params} presents the full parameter configuration for each group.
+
+\begin{table}
+    \caption{Behavioral parameter configuration per agent group. Each parameter is sampled from a Beta distribution parameterized by mean $\mu$ and concentration $K$.}
+    \label{tab:behavioral_params}
+    \centering
+    \small
+    \begin{tabular}{lrrrrrr}
+        \toprule
+                                  & \multicolumn{2}{c}{Habit}   & \multicolumn{2}{c}{Price}   & \multicolumn{2}{c}{Social}  \\
+                                    \cmidrule(lr){2-3}             \cmidrule(lr){4-5}             \cmidrule(lr){6-7}
+        Dominant Behavior Type    & $\mu$  & $K$                 & $\mu$  & $K$                 & $\mu$  & $K$                 \\
+        \midrule
+        Habit-driven              & 0.85   & 10                  & 0.10   & 5                   & 0.15   & 5                   \\
+        \midrule
+        Price-responsive          & 0.50   & 30                  & 0.85   & 10                  & 0.10   & 5                   \\
+        \midrule
+        Social-influenced         & 0.70   & 20                  & 0.10   & 5                   & 0.85   & 10                  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+Habit-driven agents are characterized with a high and concentrated habit strength and low responsiveness to both price and social signals. This profile follows from findings that habitual consumers exhibit strong schedule persistence, even when exposed to positive external incentives (Chen \& Cheng, 2024). Despite their resistance to change, they still demonstrate a capacity for some adaptation when exposed to a high number of social reinforcement within their network. This design follows the Cultural Attractor Theory of Falandays \& Smaldino (2022), which states that cultural transmission can gradually draw agents toward locally observed behavioral patterns.
+
+Price-responsive agents prioritize direct adjustment with the economic signal while retaining moderate habits. The higher spread of the habit parameter reflects flexibility around a behavioral baseline rather than strict routine adherence. This group exhibits the lowest level of social susceptibility, as they have already converged on their optimal, cost-minimizing strategy. Consequently, they remain somewhat indifferent to peer behavior because no superior alternative is available.
+
+Social-influenced agents are shaped as initially habitual agents with elevated openness to peer-driven behavioral change. Their habit strength is somewhat lower and more dispersed than the habit-driven group, indicating greater behavioral plasticity. Their price sensitivity mirrors that of habit-driven agents, meaning their primary driver for schedule adjustment is social observation rather than autonomous price engagement. 
 
 \subsection{Appliance Usage} \label{subs:usage}
 
+At the start of the simulation, each agent is assigned a fixed inventory of nine appliance categories: Dishwasher, Washing Machine, Tumble Dryer, Cooker, Oven, Grill, Hob, Television, Electronics. Per-agent appliance-specific power draw in kW, runtime in minutes, and maximum daily use count are sampled once from normal distributions and remain fixed throughout the simulation. All distribution parameters are adopted from Williams et al. (2025). A flat, always-on baseline load represents permanently active devices, such as refrigerators, routers, and standby consumption. Following Williams et al. (2025), this load is sampled per agent from a normal distribution with $\mu = 0.40$ kW and $\sigma = 0.15$ kW, then spread uniformly across all daily 96 15-minute slots.
+
+
+EV ownership is assigned per agent with a 5\% probability. This percentage is based on Dutch electric vehicle data ownership (RVO, 2026) and Western European averages for 2023 (Eurostat, 2025). These specific periods were chosen for alignment with the 2024 OpenSTEF Liander dataset, thereby granting a more robust model validation against current Western-European trends. EV charging power and duration are drawn from normal distributions with $\mu = 3.3$ kW and $\mu = 3.1$ hours respectively, sourced from Robinson et al. (2013), Table 4.
+
+Each appliance is assigned a 24-hour probability distribution, which represents the likelihood of the appliance being switched on during any given hour. These distributions are then transformed to up to four Gaussian peaks per appliance, represented as [peak\_hour, peak\_magnitude, peak\_width], by fitting sums of Gaussians to normalized hourly switch-on data from Yilmaz et al. (2017). The number of Gaussian peaks per appliance is selected using the Bayesian Information Criterion (Schwarz, 1978) GET ZOTERO. This criterion balances fit quality against model complexity and prevents unnecessary peaks. 
 \subsection{Price Generator} \label{subs:price}
 
 \subsection{Social Networks} \label{subs:networks}
