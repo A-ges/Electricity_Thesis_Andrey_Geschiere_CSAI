@@ -168,16 +168,16 @@ Copy paste BibTeX code\footnote{Using e.g. the quote icon in GScholar, then BibT
 
 \section{Methods}
 
-The ABM built for this thesis simulates agent demand based on generalizable European data at a 15-minute granularity. Given a population setup, a network, a period and a random state, it produces reproducible data on (aggregate) load, energy pricing and agent behavioral variables. The model consists of five interacting components: the population of households defined by their behavioral architectures, appliance-level load profiles, a sampled daily network, a demand-responsive hour-price generator, and a shifting mechanism through which agents adjust their per-appliance usage probability on a daily basis. FIGURE X PROVIDES A SCHEMATIC OF THE FULL SIMULATION PIPELINE
+The ABM built for this thesis simulates agent demand based on generalizable European data at a 15-minute granularity. Given a population setup, a network, a period and a random state, it produces reproducible data on (aggregate) load, energy pricing, agent behavioral variables, and system metrics. The model consists of five interacting components: the population of households defined by their behavioral architectures, appliance-level load profiles, a sampled daily network, a demand-responsive hour-price generator, and a shifting mechanism through which agents adjust their per-appliance usage probability on a daily basis. Refer to Appendix A (page~\pageref{app:a}) for a full simulation flowchart.
 
 \subsection{Data Sources} \label{subs:data}
 The OpenSTEF Liander 2024 dataset was used thrice in the building of this model. 
 It provided 15-minute electricity demand measurements for 55 Dutch local distribution networks, EPEX day-ahead hourly prices and solar park generation measurements for five Dutch solar park stations (OpenSTEF, 2024). The demand measurements were used to calibrate the model on, the EPEX prices functioned as the baseline for the pricing model, and the solar measurements were used to calculate the elasticity factor within that pricing model. 
 
-A study by Yilmaz et al. (2017) delivered the hourly switch-on probabilities, which in turn was derived from a 2011 survey on UK appliance usage (Department of Energy \& Climate Change, 2014). While dated, the dataset’s high granularity and veracity make it a solid foundation for modern studies when calibrated to reflect current energy trends (Yilmaz et al. 2017; Williams et al., 2025). Despite its comprehensive list of appliances, Electric Vehicle (EV) charging schedules were not included. The EV switch-on probability curve was therefore estimated from Robinson et al. (2013) Figure 6, which was measured around the same time and place as the appliance data.
+A study by Yilmaz et al. (2017) delivered the hourly switch-on probabilities per appliance, which in turn was derived from a 2011 survey on UK appliance usage (Department of Energy \& Climate Change, 2014). While dated, the dataset’s high granularity and veracity make it a solid foundation for modern studies when calibrated to reflect current energy trends (Yilmaz et al. 2017; Williams et al., 2025). Despite its comprehensive list of appliances, Electric Vehicle (EV) charging schedules were not included. The EV switch-on probability curve was therefore estimated from Robinson et al. (2013) Figure 6, which was measured around the same time and place as the appliance data.
 
 \subsection{The Heterogenous Population} \label{subs:population}
-The population consists of N household agents, where N is determined by a selected network. Each agent is assigned to one of the three behavioral groups, according to a configurable percentage split. Three continuous behavioral parameters are independently sampled per agent from group-specific Beta distributions: habit strength, price sensitivity, and social susceptibility. The Beta distribution is parameterized by a mean $\mu$ and concentration parameter $K$, where a higher $K$ produces a tighter distribution around $\mu$. Table \ref{tab:behavioral_params} presents the full parameter configuration for each group.
+The population consists of N household agents. Each agent is assigned to one of the three behavioral groups, according to a configurable percentage split. Three continuous behavioral parameters are independently sampled per agent from group-specific Beta distributions: habit strength, price sensitivity, and social susceptibility. The Beta distribution is parameterized by a mean $\mu$ and concentration parameter $K$, where a higher $K$ produces a tighter distribution around $\mu$. Table \ref{tab:behavioral_params} presents the full parameter configuration for each group.
 
 \begin{table}
     \caption{Behavioral parameter configuration per agent group. Each parameter is sampled from a Beta distribution parameterized by mean $\mu$ and concentration $K$.}
@@ -202,48 +202,159 @@ Habit-driven agents are characterized with a high and concentrated habit strengt
 
 Price-responsive agents prioritize direct adjustment with the economic signal while retaining moderate habits. The higher spread of the habit parameter reflects flexibility around a behavioral baseline rather than strict routine adherence. This group exhibits the lowest level of social susceptibility, as they have already converged on their optimal, cost-minimizing strategy. Consequently, they remain somewhat indifferent to peer behavior because no superior alternative is available.
 
-Social-influenced agents are shaped as initially habitual agents with elevated openness to peer-driven behavioral change. Their habit strength is somewhat lower and more dispersed than the habit-driven group, indicating greater behavioral plasticity. Their price sensitivity mirrors that of habit-driven agents, meaning their primary driver for schedule adjustment is social observation rather than autonomous price engagement. 
+Social-influenced agents are shaped as initially habitual agents with openness to peer-driven behavioral change. Their habit strength is somewhat lower and more dispersed than the habit-driven group, indicating greater behavioral plasticity. Their price sensitivity mirrors that of habit-driven agents, meaning their primary driver for schedule adjustment is social observation rather than self-induced price engagement. 
 
 \subsection{Appliance Usage} \label{subs:usage}
 
-At the start of the simulation, each agent is assigned a fixed inventory of nine appliance categories: Dishwasher, Washing Machine, Tumble Dryer, Cooker, Oven, Grill, Hob, Television, Electronics. Per-agent appliance-specific power draw in kW, runtime in minutes, and maximum daily use count are sampled once from normal distributions and remain fixed throughout the simulation. All distribution parameters are adopted from Williams et al. (2025). A flat, always-on baseline load represents permanently active devices, such as refrigerators, routers, and standby consumption. Following Williams et al. (2025), this load is sampled per agent from a normal distribution with $\mu = 0.40$ kW and $\sigma = 0.15$ kW, then spread uniformly across all daily 96 15-minute slots.
-
+At the start of the simulation, each agent is assigned a fixed inventory of nine appliance categories: Dishwasher, Washing Machine, Tumble Dryer, Cooker, Oven, Grill, Hob, Television, Electronics. Per-agent appliance-specific power draw in kW, runtime in minutes, and maximum daily use count are sampled once from normal distributions and remain fixed throughout the simulation. All distribution parameters are adopted from Williams et al (2025). A flat, always-on baseline load represents permanently active devices, such as refrigerators, routers, and standby consumption. Following Williams et al. (2025), this load is sampled per agent from a normal distribution with $\mu = 0.40$ kW and $\sigma = 0.15$ kW, then spread uniformly across all daily 96 15-minute slots. In the analysis and agents' electricity costs this baseline is disregarded, as it is not adjustable through agent behavior and therefore irrelevant to this research. Its sole purpose is to produce a plausible aggregate load curve. 
 
 EV ownership is assigned per agent with a 5\% probability. This percentage is based on Dutch electric vehicle data ownership (RVO, 2026) and Western European averages for 2023 (Eurostat, 2025). These specific periods were chosen for alignment with the 2024 OpenSTEF Liander dataset, thereby granting a more robust model validation against current Western-European trends. EV charging power and duration are drawn from normal distributions with $\mu = 3.3$ kW and $\mu = 3.1$ hours respectively, sourced from Robinson et al. (2013), Table 4.
 
-Each appliance is assigned a 24-hour probability distribution, which represents the likelihood of the appliance being switched on during any given hour. These distributions are then transformed to up to four Gaussian peaks per appliance, represented as [peak\_hour, peak\_magnitude, peak\_width], by fitting sums of Gaussians to normalized hourly switch-on data from Yilmaz et al. (2017). The number of Gaussian peaks per appliance is selected using the Bayesian Information Criterion (Schwarz, 1978) GET ZOTERO. This criterion balances fit quality against model complexity and prevents unnecessary peaks. 
+Each appliance is assigned a 24-hour probability distribution, which represents the likelihood of the appliance being switched on during any given hour. These distributions are then transformed to a maximum of four Gaussian peaks per appliance, represented as [peak\_hour, peak\_magnitude, peak\_width], by fitting sums of Gaussians to normalized hourly switch-on data from Yilmaz et al. (2017). The number of Gaussian peaks per appliance is selected using the Bayesian Information Criterion (Schwarz, 1978). This criterion balances fit quality against model complexity and prevents unnecessary peaks. The peaks were then fitted with L-BFGS-B minimizer from the Scipy Python package (Virtanen et al., 2020).
+
+Each simulated day, load profiles are constructed for every household by determining appliance use counts through Bernoulli draws over the Yilmaz et al. (2017) hourly switch-on probabilities, capped at the agent's sampled maximum per appliance (Williams et al., 2025). For each scheduled activation, a start hour is sampled from the agent's current distribution, and a random quarter-hour offset is added for 15-minute resolution. Load at the agent's sampled power draw is spread across the corresponding runtime slots, with any activation extending past midnight carried into an overflow array. This overflow will then naturally spill over into the start of the next day. 
+
+While this methodology established a baseline aggregate load with the expected dual-peak structure, the peak timing, magnitude, and width did not sufficiently align with empirical Liander residential grid data. Therefore, a calibration was applied to the fitted Gaussian peak parameters which achieves two critical goals. First, it ensures the model reflects realistic energy consumption patterns. Second, it leads to a valid correspondence with hourly EPEX day-ahead prices, which serves as the per-hour baseline in the pricing model. Two groups of peaks were adjusted as follows:
+ 
+\begin{itemize}
+    \item \textbf{Morning and midday peaks (8:00 to 13:00):} These peaks were shifted 2.8 hours earlier to better capture the morning demand peak at 7. The peak magnitude was increased by 0.1 and the width was reduced by 0.3, producing a somewhat sharper and more localized load. A minimum width of 0.1 was set to prevent negative distributions.
+ 
+    \item \textbf{Evening peaks (18:00 to 22:00):} These peaks were shifted 2 hours earlier, moving them toward the late-afternoon transition period observed in the empirical data. The height was increased by 0.5 and the width by 0.5, better representing the sustained and higher-intensity consumption associated with evening residential activity.
+\end{itemize}
+ 
+The effect of this calibration on the aggregate load profile relative to the Liander reference data is shown in Figure~\ref{fig:baseline_calibration}.
+\begin{figure}[h]  
+    \centering
+    \includegraphics[width=\textwidth]{AdjustmentFigure}
+    \caption{The effect of calibration on the aggregate load profile relative to the Liander reference data.}
+    \label{fig:baseline_calibration}
+\end{figure}
+
+
 \subsection{Price Generator} \label{subs:price}
 
+While wholesale electricity prices are influenced by complex external drivers, such as geopolitical (in)stability and industrial volatility, they remain highly correlated with demand and RES generation (Durante et al., 2022). A truly realistic EPEX day-ahead hour-price predictor extends beyond the scope of this work. This implementation will stick to the supply and demand core. 
+ 
+Each day's aggregate demand is used to estimate prices for the following day, along with a general solar-based elasticity factor. First, typical baseline prices were determined from the Liander 2024 dataset by taking the median hour price across every day of the year. Then, the baseline reference demand was established by running 50 independent 30-day simulations on a population of 500 non-shifting agents. This process yielded 1,500 hourly demand profiles, which were averaged to each agent to provide a benchmark for scale-invariant per-hour power consumption. A positive deviation between simulated and baseline demand increases the price, while a negative deviation has the opposite effect. 
+
+These deviations are scaled according to the solar elasticity for hour $h$, reflecting hour dependent RES generation throughout the day. This factor was calculated by taking the mean generation per hour for a day day across all five solar parks in the Liander 2024 dataset, then normalizing the resulting array by its maximum value so that the peak solar hour maps to 1.0 and all other hours fall proportionally below it. The elasticity is then derived through an inverted mapping of this normalized curve:
+
+\begin{equation}
+    E_{\text{solar}}(h) = E_{\text{max}} - (E_{\text{max}} - E_{\text{min}}) \times \text{Solar}_{\text{norm}}(h)
+\end{equation}
+
+\noindent where:
+\begin{itemize}
+    \item $E_{\text{solar}}(h)$ is the solar-dependent elasticity for hour $h$.
+    \item $E_{\text{max}}$ and $E_{\text{min}}$ are the upper and lower elasticity bounds, defined as $0.6$ and $0.1$ respectively.
+    \item $\text{Solar}_{\text{norm}}(h)$ is the normalized solar availability for hour $h$, such that $\text{Solar}_{\text{norm}} \in [0, 1]$.
+\end{itemize}
+This inversion means that hours with the highest normalized solar generation receive the lowest elasticity values, approaching the lower bound of 0.1. Conversely, low generation hours receive elasticity values close to the upper bound of 0.6. The bounds of [0.1, 0.6] are set to keep price responses within plausible ranges: a lower bound above zero prevents demand deviations from eliminating the price signal entirely during solar peak hours, while an upper bound of 0.6 prevents extreme price volatility during low-supply periods. Because the mapping is a linear transformation applied uniformly across all hours, the relative spacing of elasticity values across the day remain preserved nonetheless. 
+
+On day 0, the historical EPEX baseline is used directly, as no prior simulated demand is available. From day 1 onward, prices are estimated per hour h using:
+\begin{equation}
+    P(h) = P_{base}(h) \times \left( 1 + \epsilon(h) \cdot \frac{D(h) - \bar{D}(h)}{\bar{D}(h)} \right)
+\end{equation}
+
+\noindent where:
+\begin{itemize}
+    \item $P(h)$ is the estimated price for hour $h$.
+    \item $P_{base}(h)$ is the historical EPEX baseline price.
+    \item $\epsilon(h)$ is the hourly solar elasticity constant.
+    \item $D(h)$ is the mean per-agent simulated demand.
+    \item $\bar{D}(h)$ is the expected neutral reference demand constant.
+\end{itemize}
+
+While this approach neglects wholesale market complexities, it provides a consistent, computationally instant, and dynamic pricing system grounded in empirical baselines. 
+
 \subsection{Social Networks} \label{subs:networks}
-mention reali and the other studies that used this, falandays as well, why realistic
+
+Each simulation run operates on a pre-built social network generated using the graph Hamiltonian approach from House (2014). A graph refers to a mathematical structure of nodes and edges, where nodes represent agents and edges represent social connections between them. A Hamiltonian is a scalar function that assigns a penalty score to any network configuration based on how far it deviates from a set of desired structural targets, such that an algorithm can navigate toward low-penalty networks. This Hamiltonian proposed by House (2014) constrains three structural properties simultaneously: 
+\begin{itemize}
+    \item \textbf{Link Density:} Controls the overall fraction of possible connections within the network. For a network of $N = 150$ agents with a density of $\rho = 0.08$, the expected average number of neighbors per agent is $150 \times 0.08 = 12$.
+    \item \textbf{Degree Heterogeneity:} The variance-to-mean ratio of the degree distribution, determining whether agents have broadly similar or highly unequal numbers of connections.
+    \item \textbf{Clustering Coefficient:} Captures the tendency for two neighbors of an agent to also be connected to each other, forming a triangle.
+\end{itemize} 
+
+This approach was chosen because standard alternatives typically sacrifice one structural property for another and, as stated by House (2014), they ``attribute zero likelihood to the majority of observed networks.'' This Hamiltonian avoids these limitations by constraining all three properties simultaneously, ensuring the resulting networks remain structurally realistic. This approach has been adopted in other studies involving network modeling (Reali et al., 2018; Falandays \& Smaldino, 2022), demonstrating its fit as a realistic social network construction method.
+
+First, a link density of 0.08 is applied. While Reali et al. (2018) employed a higher link density ($\rho = 0.20$), their model incorporated language, which is a present in every interaction. This is not reflective of the network in this study, which centers on a subset of connected households who could discuss energy topics. Second, a degree heterogeneity of 1.5 is chosen to include general heterogeneity in connections. An extension to the method by House (2014) is a requirement that every agent possesses at least one connection, to prevent extreme heterogeneity effects. Finally, a clustering coefficient of 0.25 was found to be an invariant value across population sizes (Schläpfer et al., 2014).
+
+Because evaluating all possible network configurations is computationally intractable, the method uses a Markovian Monte Carlo procedure. Starting from an empty adjacency matrix, edges are randomly proposed for addition or removal one at a time. A proposal is accepted if it reduces the Hamiltonian penalty or if a probability hits in a Bernoulli trial, giving the algorithm a chance to escape local minima. The final Hamiltionian graphs used in the simulation are pre-computed for population sizes ranging from 50 to 1,000 agents in steps of 50, with five independently seeded variants per size.
+
+Each simulated day, a daily contact sub-network is sampled per agent from the full pregenerated network. Each agent draws a personal contact count from a normal distribution with mean 8 and standard deviation 3. This hyperparameter was informed by Mousa et al. (2021), whose contact study showed a mean of approximately 12 daily contacts per person across age groups. Their mean is downscaled in this case to reflect that electricity is a rather niche conversation topic. However, the value remains relatively high because each agent in this simulation represents an entire household rather than an individual. The selection algorithm guarantees mutual assignment, and every agent receives at least one daily contact. This daily contact network determines whose previous-day peak centers each agent observes when computing its social shift target.
 
 \subsection{Shifting} \label{subs:shifting}
 
+The behavioral mechanism at the core of this simulation is the daily shifting of  agents' appliance distributions. Only peak centers are updated through shifting, heights and widths are fixed after initialization with the habitual shift. For the determining of habit strength, price sensitivity, and social susceptibility parameters per heterogeneous group, refer to Table \ref{tab:behavioral_params}. 
+\medskip
+
+\textbf{Habit shift}: On day 0, all agents' peaks are adjusted once by their habit strength. Peak height is increased by $\text{habit\_str} \times \varepsilon_{\text{habit}}$ and peak width is reduced by $\text{habit\_str} \times 0.5$, with a floor of $0.2$. Highly habitual agents thus begin the simulation with taller, narrower peaks, concentrating consumption more intensely at their preferred times. 
+
+\medskip
+
+\textbf{Price shift}: From day 1 onward, each peak center shifts toward the nearest local price minimum detected in the current day's price curve. The price-driven shift for peak center $c$ of appliance $a$ belonging to agent $i$ is:
+
+\begin{equation} \label{eq:price_shift}
+    \Delta_{\text{price}} = \text{price\_sens}_i \times r_a \times \varepsilon_{\text{price}} \times (\hat{c}_{\text{price}} - c)
+\end{equation}
+
+\noindent where $r_a$ is a per-appliance flexibility scalar and $\hat{c}_{\text{price}}$ is the nearest local price minimum to the current center $c$. The appliance flexibility rates represent general shifting possibility for every appliance. Washing machines and dishwashers carry the highest rate ($0.75$), as Berg et al. (2024) identify these as the most flexible appliance categories for load shifting. Cooking appliances (Oven, Cooker, Hob, and Grill) carry the lowest rate ($0.15$), reflecting the routine binding constraints of  mealtimes (Berg et al., 2024). Flexibility of EVs is set at $0.35$, as flexible EV charging options are emerging but are not yet widespread. Therefore, this parameter is kept conservative (Sørensen et al., 2021). Fitting data for the remaining appliances was not present, therefore they are estimations relative to the defined flexibilities. Tumble dryer flexibility is set at ($60$), placing it around the highest rated category but slightly punishing it for its dependence on the washing machine.  Television and electronics are both set at 0.30, reflecting their leisure-driven usage patterns which carry moderate flexibility. They are somewhat bounded to routine, but lack the strict contraints of cooking appliances. A full overview of flexibility rates is provided in Table~\ref{tab:shift_params}.
+\medskip
+
+\textbf{Social shift}: From day 2 onward, each peak center is additionally shifted toward the index-matched mean center of that same peak across the agent's daily contacts from the previous day. The social shift is defined as:
+
+\begin{equation} \label{eq:social_shift}
+    \Delta_{\text{social}} = \text{soc\_suc}_i \times r_a \times \varepsilon_{\text{social}} \times (\bar{c}_{\text{social}} - c)
+\end{equation}
+
+\noindent where $\bar{c}_{\text{social}}$ is the mean center of peak index $i$ across yesterday's daily contacts. If no contact used an appliance on the previous day, or if a specific peak index has no contributing contact data, the social shift for that peak is zero. The final updated center, which includes the price shift, is clipped to $[0.0,\ 23.0]$, constraining all centers within day limits. 
+
+The epsilons across their respective shifting formula were set based on face validity: social agents should remain near their initial positions when surrounded by purely habitual neighbors, all shift should occur gradually across the 30-day  period. Since the price-shift channel is a direct and noiseless source of shift, its epsilon value is kept lower than that of the social-shift channel to maintain a balanced influence between the two mechanisms. Refer to Table~\ref{tab:shift_params} for the overview of epsilons.
+
+\begin{table}
+    \caption{Per-appliance flexibility rates and epsilon parameters. Flexibility rates $r_a \in [0,1]$ scale the magnitude of both price and social shifts for each appliance. The three epsilon parameters define the strength of their respective shifting mechanism.}
+    \label{tab:shift_params}
+    \centering
+    \small
+    \begin{tabular}{lll}
+        \toprule
+        Appliance         & Source                        & Rate $r_a$ \\
+        \midrule
+        Washing Machine   & Berg et al. (2024)           & 0.75 \\
+        Dishwasher        & Berg et al. (2024)           & 0.75 \\
+        Tumble Dryer      & Berg et al. (2024)           & 0.60 \\
+        Television        &                              & 0.30 \\
+        Electronics       &                              & 0.30 \\
+        Oven              & Berg et al. (2024)           & 0.15 \\
+        Cooker            & Berg et al. (2024)           & 0.15 \\
+        Hob               & Berg et al. (2024)           & 0.15 \\
+        Grill             & Berg et al. (2024)           & 0.15 \\
+        Electric Vehicle  & Sørensen et al. (2021)       & 0.35 \\
+        \midrule
+        Parameter                         &                & Value \\
+        \midrule
+        $\varepsilon_{\text{habit}}$      &                & 1.0  \\
+        $\varepsilon_{\text{price}}$      &                & 0.25 \\
+        $\varepsilon_{\text{social}}$     &                & 0.5  \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 \subsection{Metrics} \label{subs:metrics}
+
+Metrics are computed at the end of each simulated day and stored in two data frames: one at the agent-day level and one at the system-day level. A primary system metric is the Peak-to-Average Ratio defined as: 
+
+\begin{equation}
+\mathrm{PAR} = \frac{\mathrm{max(load)}}{\mathrm{mean(load)}}
+\end{equation}
+
+where higher values indicate greater temporal concentration of demand and higher grid stress (Makhadmeh et al., 2019). Load spread is additionally characterized by load variance, the coefficient of variation, and the Gini coefficient of the 96-slot load profile. The Gini coefficient ranges from 0, indicating perfectly flat demand, to 1, indicating complete concentration in a single timeslot, and provides an intuitive summary of intraday load inequality.
+At the agent level, individual flexibility is the summed absolute center displacement across all appliance peaks on a given day, decomposed into price-driven and social-driven contributions. On the final simulated day only, individual adjustment is computed as the mean absolute displacement of all current peak centers from their day-0 initial positions, capturing the total schedule change accumulated over the full simulation and directly addressing RQ1. Normalized cost divides the agent's total appliance usage cost by total appliance energy consumption in kWh, enabling comparison across agents regardless of absolute consumption levels. Price advantage captures the difference between the population mean slot price and the agent's effective price per kWh, where a positive value indicates that shifting behavior resulted in below-average costs. Aggregate load validation compares the median simulated load profile across all simulated days to the Liander residential reference at 15-minute granularity, following the approach of Williams et al. (2025).
 
 \subsection{Technical Implementation} \label{subs:technical}
 
-WHY HOURLY
-Here you describe your methodology in sufficient detail for reproducibility, you also aim to motivate the choices made, i.e., the chosen methods should be appropriate for your research goals, and this alignment should be clearly explained. 
-
-For human subjects studies, the sub-sections may include: \textbf{Participants} (i.e., sample size, participant demographics, how participants were recruited, whether informed consent was sought), \textbf{Stimuli} (i.e., what the stimuli/materials consisted of and how they were obtained or created), \textbf{Experimental Design} (i.e., within-subjects/between-subjects, independent and dependent variables and their measurement), \textbf{Procedure} (i.e., task description), and \textbf{Analysis} (i.e., statistical tests applied, software used).
-
-For machine learning studies, the sub-sections may include: \textbf{Dataset/s} (i.e., source, size, features, and descriptive statistics where appropriate), \textbf{Feature Extraction} (if applicable), \textbf{Machine Learning Setup} (i.e., dataset splits, cross-validation approach, preprocessing steps, algorithms used, hyperparameters tuned), \textbf{Evaluation Metrics} (i.e., how model performance was assessed), \textbf{Implementation} (i.e., programming languages, packages used). 
-
-If you define any equations (\verb|\begin{equation}...|), you probably might want to define everything using math operators (e.g., \verb|$D$|) and cite the work (!). So for example, following \cite{lewis1994sequential}, representing a document $d \in D$ as tf$(d)$, we define a probabilistic model $(d | Y = y)$ for all documents in class $y$, and select $y$ most likely to generate $d$:
-
-\begin{equation} \label{eq:nbarg}
-    \hat{y} = \underset{y}{\mathrm{argmax}} \ P(d | y) \cdot P(y)
-\end{equation}
-
-\begin{figure}[H] %forces the figure to appear here
-    \centering
-    \includegraphics[width=\textwidth]{spam.png}
-    \caption{Spam classification example. Source: \href{https://developers.google.com/machine-learning/guides/text-classification}{Google} (CC BY 4.0).}
-    \label{fig:spam}
-\end{figure}
-
-With this we can detect spam (see Figure~\ref{fig:spam}) or bots.  Note that the figures (and tables for that matter) might not always be placed in this section. \LaTeX{} typically determines where to best put your objects. However, the [H] option from the float package forces figures to appear at this exact location rather than floating to other sections. \textbf{NOTE}: this Figure has a Creative Commons license; you cannot re-use other authors' figures without explicit permission or permissive licensing (as this would mean copyright infringement). You can refer to the equations as well (Equation~\ref{eq:nbarg}).
+This simulation is implemented in Python using NumPy for array operations, Pandas for data collection and output, matplotlib for visualization, and SciPy for peak-fitting optimization and local price minima detection. Full reproducibility is guaranteed by a single master seed from which all agent-level and day-level sub-seeds are derived. The pre-built social networks are saved as a JSON file, allowing for consistent network structure across runs with different behavioral configurations without the computational delay of generating. All code and pre-built networks are publicly available in the GitHub repository linked in the DSECT statement.
 
 \section{Results}
 
@@ -305,6 +416,14 @@ Keep this section focused and avoid introducing new information, as that belongs
 
 \section*{Appendix A} \label{app:a}
 
+\begin{figure}[p] % [p] gives it a dedicated page for maximum size
+    \centering
+    \makebox[\textwidth][c]{%
+        \includegraphics[width=1.15\textwidth]{simulation_pipeline}
+    }
+    \caption{Schematic representation of the simulation pipeline.}
+    \label{fig:simulation_pipeline}
+\end{figure}
 If you have nothing to append: remove this. You can do a page referral for these, like: Appendix A (page~\pageref{app:a}).
 
 \section*{Appendix B}
