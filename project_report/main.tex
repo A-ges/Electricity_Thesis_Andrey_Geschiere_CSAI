@@ -361,11 +361,67 @@ where higher values indicate greater temporal concentration of demand and higher
 This simulation is implemented in Python using NumPy for array operations, Pandas for data collection and output, matplotlib for visualization, and SciPy for peak-fitting optimization and local price minima detection. Full reproducibility is guaranteed by a single master seed from which all agent-level and day-level sub-seeds are derived. The pre-built social networks are saved as a JSON file, allowing for consistent network structure across runs with different behavioral configurations without the computational delay of generating. All code and pre-built networks are publicly available in the GitHub repository linked in the DSECT statement.
 
 \section{Results}
+Within this section, simulation behavior and outcomes will be presented in three parts. First, a qualitative inspection of the model's behavioral dynamics is provided using a representative population to understand the system dynamics. This is followed by the statistical analysis of within-population behavioral group differences, addressing RQ1. Finally, the system-level effects of population composition are assessed, addressing RQ2. All simulations run for 30 days at 15-minute granularity. Bonferroni correction is applied throughout to control for multiple comparisons.
+Throughout the analysis, set population mixes will be referred to by their label. Refer to Table~\ref{tab:populations} for these labels and the associated population
+
+\begin{table}
+    \caption{Overview of all simulated population compositions. Each label reflects the dominant behavioral characteristic of the population.}
+    \label{tab:populations}
+    \centering
+    \small
+    \begin{tabular}{l l l p{5.5cm}}
+        \toprule
+        Label & habit / price / social & Used in & Purpose \\
+        \midrule
+        Habitual          & 90\% / 5\% / 5\%   & RQ1, RQ2      & Near-complete habit dominance; represents minimal DR adoption \\
+        Tipping           & 70\% / 5\% / 25\%  & RQ1, RQ2      & Social-leaning variant of Habitual; tests peer influence under habit dominance \\
+        Progressive       & 60\% / 30\% / 10\% & QA, RQ1, RQ2  & Mix with visible dynamics across all three groups \\
+
+        Balanced          & 50\% / 25\% / 25\% & RQ1, RQ2      & Equal spread of shift-dominant groups\\
+        Price-Maximalist  & 20\% / 70\% / 10\% & RQ2           & Extreme price-responsive majority; understand system dynamics of near-optimal DR composition \\
+        Social-Maximalist & 20\% / 10\% / 70\% & RQ2           & Extreme social majority; understand system dynamics of social heavy composition \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
 \subsection{Qualitative Analysis} \label{subs:QA}
 
-Discuss how the reader should note scale differences in the shift contribution plot
+In Qualitative Analysis, the model's behavior using the Progressive population at N = 500 is examined. This composition was selected because it contains a good share of all three behavioral groups, making the shifting dynamics across both channels visible.
+
+
+\begin{figure}[h]  
+    \centering
+    \includegraphics[width=\textwidth]{fig1_day0_vs_day29}
+    \caption{Aggregate load over a 24-hour period of the Progressive population on Day 0 and Day 29.}
+    \label{fig:QAaccload}
+\end{figure}
+
+Figure~\ref{fig:QAaccload} compares the aggregate load curve on day 0, where only the initial habitual shift has been applied, to the curve on day 29, after 29 cycles of both price and social shifting. On day 0, the load follows the expected structure, with a morning and evening maximum at impractical times. By day 29, both peaks reduced total load and shifted toward earlier hours. The evening peak became more dispersed, whereas the morning peak became narrower. The IQR bands show that variance is somewhat elevated at the peaks during initialization and eventually balances over the entire simulation curve at day 29.
+
+
+\begin{figure}[h]  
+    \centering
+    \includegraphics[width=\textwidth]{fig3_price_heatmap}
+    \caption{Heatmap of Cost/kWh by hour and simulation day}
+    \label{fig:QAheatmap}
+\end{figure}
+
+
+Figure~\ref{fig:QAheatmap} presents the evolution of hourly prices across the 30 simulated days. Reading down a column shows the price shape on a given day, reading across a row reveals how a specific hour's price evolves over time. The expensive evening hours gradually become cheaper as aggregate demand shifts away from them. The midday price increase is barely visible due to the low solar elasticity factor. The fluctuations in morning prices are slightly more pronounced, due to the high elasticity factor amplifying the impact of increased demand in early hours. 
+
+\begin{figure}[h]  
+    \centering
+    \includegraphics[width=\textwidth]{fig4_cumulative_shift_contributions}
+    \caption{Cumulative demand-shift contributions by channel for each behavioral group}
+    \label{fig:QAshiftcontr}
+\end{figure}
+
+Figure~\ref{fig:QAshiftcontr} decomposes the cumulative shift contributions into the price-driven and social-driven channels for each behavioral group. The scale difference on the y-axis across the behavioral types shows the variety in shifting distance per group, with price-responsive agents reaching the highest substantially. This tracks with the noiseless nature of the price-shift, they take the optimal route to a local price minimum. In contrast, social shifting exhibits does contain noise, as agents’ networks are likely influenced by non-price-responsive agents. Social-influenced agents' social contribution grows steadily as they gradually adopt the price-responsive schedule observed among their network contacts within the Progressive population. This increasing social contribution is a emergent outcome of the Cultural Attractor dynamic, where socially susceptible agents are gradually pulled toward the locally dominant behavioral pattern. Habit-driven agents accumulate minimal shift through either channel.
+
 \subsection{Agent Behavior} \label{subs:QA}
-Reference the RQ but not directly
+
 \subsection{System Behavior} \label{subs:QA}
 
 Report your main findings here (e.g., model performance metrics, statistical test outcomes) and highlight important or interesting patterns. All information in tables and figures should be summarized/interpreted in text focusing on notable trends and comparisons.
