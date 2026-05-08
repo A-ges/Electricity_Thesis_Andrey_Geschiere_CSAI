@@ -168,7 +168,7 @@ Copy paste BibTeX code\footnote{Using e.g. the quote icon in GScholar, then BibT
 
 \section{Methods}
 
-The ABM built for this thesis simulates agent demand based on generalizable European data at a 15-minute granularity. Given a population setup, a network, a period and a random state, it produces reproducible data on (aggregate) load, energy pricing, agent behavioral variables, and system metrics. The model consists of five interacting components: the population of households defined by their behavioral architectures, appliance-level load profiles, a sampled daily network, a demand-responsive hour-price generator, and a shifting mechanism through which agents adjust their per-appliance usage probability on a daily basis. Refer to Appendix A (page~\pageref{app:a}) for a full simulation flowchart.
+The ABM built for this thesis simulates agent's electricity demand based on generalizable European data at a 15-minute granularity. Given a population setup, a network, a period and a random state, it produces reproducible data on (aggregate) load, energy pricing, agent behavioral variables, and system metrics. The model consists of five interacting components: the population of households defined by their behavioral architectures, appliance-level load profiles, a sampled daily network, a demand-responsive hour-price generator, and a shifting mechanism through which agents adjust their per-appliance usage probability on a daily basis. Refer to Appendix A (page~\pageref{app:a}) for a full simulation flowchart.
 
 \subsection{Data Sources} \label{subs:data}
 The OpenSTEF Liander 2024 dataset was used thrice in the building of this model. 
@@ -278,7 +278,7 @@ Each simulation run operates on a pre-built social network generated using the g
 
 This approach was chosen because standard alternatives typically sacrifice one structural property for another and, as stated by House (2014), they ``attribute zero likelihood to the majority of observed networks.'' This Hamiltonian avoids these limitations by constraining all three properties simultaneously, ensuring the resulting networks remain structurally realistic. This approach has been adopted in other studies involving network modeling (Reali et al., 2018; Falandays \& Smaldino, 2022), demonstrating its fit as a realistic social network construction method.
 
-First, a link density of 0.08 is applied. While Reali et al. (2018) employed a higher link density ($\rho = 0.20$), their model incorporated language, which is a present in every interaction. This is not reflective of the network in this study, which centers on a subset of connected households who could discuss energy topics. Second, a degree heterogeneity of 1.5 is chosen to include general heterogeneity in connections. An extension to the method by House (2014) is a requirement that every agent possesses at least one connection, to prevent extreme heterogeneity effects. Finally, a clustering coefficient of 0.25 was found to be an invariant value across population sizes (Schläpfer et al., 2014).
+First, a link density of 0.08 is applied. While Reali et al. (2018) employed a higher link density ($\rho = 0.20$), their model incorporated language, which is a present in every interaction. This is not reflective of the network in this study, which centers on a subset of connected households who could discuss energy topics. Second, a degree heterogeneity of 1.5 is chosen to include general heterogeneity in connections. An extension to the method by House (2014) is a requirement that every agent possesses at least one connection. Finally, a clustering coefficient of 0.25 was found to be an invariant value across population sizes (Schläpfer et al., 2014).
 
 Because evaluating all possible network configurations is computationally intractable, the method uses a Markovian Monte Carlo procedure. Starting from an empty adjacency matrix, edges are randomly proposed for addition or removal one at a time. A proposal is accepted if it reduces the Hamiltonian penalty or if a probability hits in a Bernoulli trial, giving the algorithm a chance to escape local minima. The final Hamiltionian graphs used in the simulation are pre-computed for population sizes ranging from 50 to 1,000 agents in steps of 50, with five independently seeded variants per size.
 
@@ -343,20 +343,30 @@ The epsilons across their respective shifting formula were set based on face val
 
 \subsection{Metrics} \label{subs:metrics}
 
-Metrics are computed at the end of each simulated day and stored in two data frames: one at the agent-day level and one at the system-day level. A primary system metric is the Peak-to-Average Ratio defined as: 
+Metrics are computed at the end of each simulated day and stored in two data frames: one at the agent-day level and one at the system-day level. MAKE SURE THIS IN LINE with my results section
+
+At the agent level, individual flexibility is the summed absolute center displacement across all appliance peaks on a given day, decomposed into price-driven and social-driven contributions. On the final simulated day only, individual adjustment is computed as the mean absolute displacement of all current peak centers from their day-0 initial positions, capturing the total schedule change accumulated over the full simulation and directly addressing RQ1. Normalized cost divides the agent's total appliance usage cost by total appliance energy consumption in kWh, enabling comparison across agents regardless of absolute consumption levels. Price advantage captures the difference between the population mean slot price and the agent's effective price per kWh, where a positive value indicates that shifting behavior resulted in below-average costs. Aggregate load validation compares the median simulated load profile across all simulated days to the Liander residential reference at 15-minute granularity, following the approach of Williams et al. (2025).
+
+A primary system metric is the Peak-to-Average Ratio defined as: 
 
 \begin{equation}
 \mathrm{PAR} = \frac{\mathrm{max(load)}}{\mathrm{mean(load)}}
 \end{equation}
 
-where higher values indicate greater temporal concentration of demand and higher grid stress (Makhadmeh et al., 2019). Load spread is additionally characterized by load variance, the coefficient of variation, and the Gini coefficient of the 96-slot load profile. The Gini coefficient ranges from 0, indicating perfectly flat demand, to 1, indicating complete concentration in a single timeslot, and provides an intuitive summary of intraday load inequality.
-At the agent level, individual flexibility is the summed absolute center displacement across all appliance peaks on a given day, decomposed into price-driven and social-driven contributions. On the final simulated day only, individual adjustment is computed as the mean absolute displacement of all current peak centers from their day-0 initial positions, capturing the total schedule change accumulated over the full simulation and directly addressing RQ1. Normalized cost divides the agent's total appliance usage cost by total appliance energy consumption in kWh, enabling comparison across agents regardless of absolute consumption levels. Price advantage captures the difference between the population mean slot price and the agent's effective price per kWh, where a positive value indicates that shifting behavior resulted in below-average costs. Aggregate load validation compares the median simulated load profile across all simulated days to the Liander residential reference at 15-minute granularity, following the approach of Williams et al. (2025).
+where higher values indicate greater temporal concentration of demand and higher grid stress (Makhadmeh et al., 2019). The peak time is measured, you can infer EMD. Load spread is additionally characterized by load variance, the coefficient of variation, and the Gini coefficient of the 96-slot load profile. The Gini coefficient ranges from 0, indicating perfectly flat demand, to 1, indicating complete concentration in a single timeslot, and provides an intuitive summary of intraday load inequality.
+
 
 \subsection{Technical Implementation} \label{subs:technical}
 
 This simulation is implemented in Python using NumPy for array operations, Pandas for data collection and output, matplotlib for visualization, and SciPy for peak-fitting optimization and local price minima detection. Full reproducibility is guaranteed by a single master seed from which all agent-level and day-level sub-seeds are derived. The pre-built social networks are saved as a JSON file, allowing for consistent network structure across runs with different behavioral configurations without the computational delay of generating. All code and pre-built networks are publicly available in the GitHub repository linked in the DSECT statement.
 
 \section{Results}
+\subsection{Qualitative Analysis} \label{subs:QA}
+
+Discuss how the reader should note scale differences in the shift contribution plot
+\subsection{Agent Behavior} \label{subs:QA}
+Reference the RQ but not directly
+\subsection{System Behavior} \label{subs:QA}
 
 Report your main findings here (e.g., model performance metrics, statistical test outcomes) and highlight important or interesting patterns. All information in tables and figures should be summarized/interpreted in text focusing on notable trends and comparisons.
 Where appropriate, conduct further exploration through statistical analysis, confusion matrices, error analysis, or stratified results (e.g., performance across sub-groups, classes, or conditions) to reveal patterns not obvious from overall results.
