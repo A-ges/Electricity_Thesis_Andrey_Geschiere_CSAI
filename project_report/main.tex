@@ -64,13 +64,11 @@ Load Synchronization in Variable-Priced Electricity Systems}             % subti
 % --- start writing below:
 
 \begin{abstract}
-The temporal concentration of residential electricity demand into morning and evening peaks poses a growing challenge for grid operators navigating the shift toward renewable energy integration. As variable-priced contracts become more widespread across Western Europe, understanding how heterogeneous household behavior translates into aggregate demand patterns becomes essential for effective demand response policy. This thesis examines these dynamics through an agent-based model (ABM) of heterogeneous households, simulated over a 30-day period at 15-minute granularity. Household-level energy usage is modeled as collections of appliances with distinct power consumption and flexibility characteristics. Three behavioral architectures influence how agents schedule these appliances: habit-driven agents who concentrate usage on preferred times, price-responsive agents who shift appliance usage toward hourly price minima, and socially-influenced agents who gradually adopt the observed schedules of their local network. The model is calibrated against Dutch distribution network data from the OpenSTEF Liander 2024 dataset. Results indicate that behavioral architecture is the dominant driver of individual-level outcomes within the model, with price-responsive agents shifting approximately four times more per day than habit-driven agents and achieving lower normalized energy costs. At the system level, population composition explained over 83\% of rank variance across all tested metrics. Socially-influenced agents required sufficient exposure to price-responsive peers to shift meaningfully, pointing to a behavioral tipping dynamic that is relevant for demand response design.
+The concentration of residential demand into morning and evening peaks creates a temporal mismatch with the generation of renewable energy. This challenges grid operators, who have to integrate green power without compromising stability. As variable-priced contracts are spreading across Western Europe, it is necessary for effective policymaking to understand how heterogeneous household behaviors translate into aggregate demand patterns under these new pricing structures. This thesis examines these dynamics through an Agent-Based Model (ABM) of heterogeneous households, simulated over a 30-day period at 15-minute granularity. Household-level energy usage is modeled as collections of appliances with distinct power consumption and flexibility characteristics. Three behavioral architectures influence how agents schedule these appliances: habit-driven agents who concentrate usage on preferred times, price-responsive agents who shift appliance usage toward hourly price minima, and socially-influenced agents who gradually adopt observed schedules of their local network. The model is calibrated against Dutch grid data from the OpenSTEF Liander 2024 dataset. Results indicate that behavioral architecture is the dominant driver of individual-level outcomes within the model, with price-responsive agents shifting approximately four times more per day than habit-driven agents and achieving lower energy costs. At the system level, population composition explained over 83\% of rank variance across all tested metrics. Socially-influenced agents required sufficient exposure to price-responsive peers to shift meaningfully, pointing to a behavioral tipping dynamic that is relevant for demand response design.
 \end{abstract}
 
 \section{Data Source, Ethics, Code, and Technology statement}
-Data from the Liander OpenSTEF 2024 dataset was used to build model components and calibration. Additional data from Yilmaz et al. (2017), Robinson et al. (2013) and Williams et al. (2025) was used to define empirical baselines in the code. These sources are cited where necessary in both the code and this thesis report, for further detail on data usage refer to \ref{subs:data}. The project code and analysis notebooks can be found  in the GitHub repository (ADD SOURCE TO GIT like Geschiere, 2026). No consent was required to use any of the data in this project. Analysis is performed on synthetic data, which was generated with the model implemented in this thesis. All figures and tables were self-made with the Python Matplotlib package. For a full package and version overview, refer to \ref{subs:technical} and the requirements.txt file in the repository. The thesis follows the LaTeX template provided by Tilburg University. Reference management was done through Zotero (Corporation for Digital Scholarship, 2025).
-
-Generative AI tools (Gemini (Google, 2026), Claude (Anthropic, 2026), ChatGPT (OpenAI, 2026)) were used for bugfixing and paraphrasing. Claude wrote pseudocode for the House (2016) network implementation as described in \ref{subs:networks}. Grammarly was used for grammar and spelling checks. 
+Data from the Liander OpenSTEF 2024 dataset was used to build model components and calibration. Additional data from Yilmaz et al. (2017), Robinson et al. (2013) and Williams et al. (2025) was used to define empirical baselines in the code. These sources are cited where necessary in both the code and this thesis report, for further detail on data usage refer to \ref{subs:data}. The project code and analysis notebooks can be found  in the GitHub repository (ADD SOURCE TO GIT like Geschiere, 2026). No consent was required to use any of the data in this project. Analysis is performed on synthetic data, which was generated with the model implemented in this thesis. Simulation parameters are derived from cited research, and all figures and tables were created by the author. For a full package and version overview, refer to \ref{subs:technical} and the requirements.txt file in the repository. The thesis follows the LaTeX template provided by Tilburg University. Reference management was done through Zotero (Corporation for Digital Scholarship, 2025). Generative AI tools (Gemini (Google, 2026), Claude (Anthropic, 2026), ChatGPT (OpenAI, 2026)) were used for bugfixing and paraphrasing. Claude wrote pseudocode for the House (2014) network implementation as described in \ref{subs:networks}. Grammarly was used for grammar and spelling checks. 
 
 \section{Introduction} \label{sec:introduction}
 
@@ -111,35 +109,34 @@ By answering these research questions, this thesis aims to bridge a scientific g
 \subsection{The Paradigm Shift} \label{subs:shift}
 The architecture of electricity systems has historically followed the assumption that supply must be continuously adjusted to match consumption. Eid et al. (2016) formalize this as the \textit{generation-follows-demand} perspective. They define it as a structure where "generation units are synchronously operated to automatically supply the actual demand of electricity". Historically, this meant that (fossil) power generators bore the burden of maintaining grid stability by adjusting their output in real-time.
 
-The penetration of weather-dependent RES has inverted this logic onto the consumer. Wind and solar generation are stochastic, producing electricity when conditions allow rather than when demand requires it. Eid et al. (2016) then identify the structural consequence, noting that "in future electricity systems the generation-follows-demand perspective is increasingly replaced by a demand-follows-generation perspective, a transition that requires consumers to receive real-time price signals through dynamic pricing."  
+The penetration of weather-dependent RES within the electric grid has inverted this logic onto the consumer. Wind and solar generation are stochastic, producing electricity when conditions allow rather than when demand requires it. Eid et al. (2016) follow up by identifying the structural consequence, noting that "in future electricity systems the generation-follows-demand perspective is increasingly replaced by a demand-follows-generation perspective".  
 
 A central feature of this new logic is the evolution of users from passive consumers into \textit{prosumers} who act as active participants within the demand chain. Parag and Sovacool (2016) describe prosumers as agents that "actively manage their own consumption and production of energy," relying on solar panels and smart-meter infrastructure to participate on both sides of the energy market. The growth of such distributed generation introduces variable local surpluses and deficits at the distribution level that conventional grid management is not designed to absorb.
 
-Dynamic pricing serves as the commercial instrument through which this paradigm shift reaches individual households. This mechanism is built into this thesis through the integration of EPEX day-ahead hourly prices. When wholesale prices vary hourly, households enrolled in variable contracts have a direct financial incentive to shift deferrable consumption toward periods of high renewable generation and low price. This direction has been gaining institutionalization across Europe. Johanning et al. (2024) note that the German GNDEW law now mandates that all energy providers have to offer contracts with dynamic energy tariffs in their portfolio. This marks a significant mainstreaming of the demand-follows-generation logic through national policy.
+According to Eid et al. (2016), dynamic pricing serves as the commercial instrument through which this paradigm shift reaches individual households. When wholesale prices vary hourly, households enrolled in variable contracts have a direct financial incentive to shift deferrable consumption toward periods of high renewable generation and low price. This direction has been gaining institutionalization across Europe. Johanning et al. (2024) note that the German GNDEW law now mandates that all energy providers must offer contracts with dynamic energy tariffs in their portfolio. This marks a significant mainstreaming of the demand-follows-generation logic through national policy. 
 
 \subsection{Defining Usage Behavior} \label{subs:userbehav}
-The demand response literature establishes that households respond to price signals and social nudges. However, this response is not uniform and not for the same reasons. Johanning et al. (2024) identify this as a structural point in the energy transition, noting that "households are not homogeneous in their electricity demand and consumption habits" and that "differences in socio-economic or attitudinal factors, as well as household composition, can influence electricity consumption and attitudes towards shifting electricity usage." These mixing components result in a heterogeneous population with each household having an unique stance against DR. The separation of these behavioral drivers by Johanning et al. (2024) motivated this thesis' approach for settling the three behavioral types that define a behavioral profile. The selection of habitual, price-sensitive, and socially-influenced agents was motivated by further research discussed in this subsection.
+The demand response literature establishes that households respond to price signals and social nudges. However, this response is not uniform and not for the same reasons. Johanning et al. (2024) identify this as a structural point in the energy transition, noting that "households are not homogeneous in their electricity demand and consumption habits" and that "differences in socio-economic or attitudinal factors, as well as household composition, can influence electricity consumption and attitudes towards shifting electricity usage." These mixing components result in a heterogeneous population with each household having an unique stance against DR. The separation of these behavioral drivers by Johanning et al. (2024) motivated this thesis' approach for settling on the three behavioral types that define a behavioral profile. The selection of habitual, price-sensitive, and socially-influenced agents was motivated by the literature discussed in this subsection.
 
-Habit persistence is the first and most prevalent mechanism. Häseler and Wulf (2024) regard it as the central obstacle to price-based DR. Even when smart meters and dynamic tariffs are available, consumers have been rooted in long-standing routines for generations. These behavioral patterns have been established in times of fixed electricity prices being the norm. They mention that "there is no culture of scheduling one's daily activities based on the price of power." This behavioral observation defines the habit-driven agent in this model. Habitual agents concentrate consumption on times familiar to them, with little responsiveness to price signals.
+Habit persistence is the first and most prevalent mechanism. Häseler and Wulf (2024) regard it as the central obstacle to price-based DR. Even when smart meters and dynamic tariffs are available, consumers have been rooted in long-standing routines for generations. These behavioral patterns have been established in times of fixed electricity prices being the norm. Consequently, there is an absence of a societal norm or 'culture' regarding a positive scheduling of daily electrical appliance use. This behavioral observation defines the habit-driven agent in this model. Habitual agents concentrate consumption on times familiar to them, with little responsiveness to price signals.
 
 Price responsiveness functions as the behavioral counterpart: the agent who actively shifts consumption toward cheaper periods in response to market signals. Häseler and Wulf (2024) characterize this profile, mentioning that "a household's financial savings potential depends on its responsiveness: the size of the loads to be shifted, by how long they can be shifted, and the consumer's proficiency at scheduling consumption based on the price profile."
 
-Social influence constitutes the third mechanism in this ABM. Johanning et al. (2024) explicitly identify social network effects as an important modeling consideration in ABM energy demand. Empirical evidence supports the weight of this channel. Du et al. (2024) examined the influence of social networks on the adoption of energy-efficient replacements for inefficient appliances. They found that approximately 80\% of respondents in low-barrier energy adoption scenarios were shaped by social factors, and that "peer effects exert a more substantial influence on adoption decisions than social norms," pointing to direct interpersonal influence rather than diffuse normative pressure. Mochi et al. (2025) reinforce these findings, showing that social comparison and group identification could lead to a decrease of 6.7\% to 11\% in total consumption. Although these studies refer to general electricity usage and appliances rather than changing usage times, it implies that electricity usage is influenced in some way through the social network.  Falandays and Smaldino (2022) provide a general theoretical background using \textit{Cultural Attractor Theory} and ABM. Through repeated social transmission, individually variable behaviors tend to converge toward stable attractor points within a population. This \textit{cognitive alignment} emerges from accumulated exposure to neighbors' patterns rather than from explicit coordination. This suggests that even modest social influence, can produce durable shifts in behavioral norms rather than short-lived nudge effects.
+Social influence constitutes the third mechanism in this ABM. Johanning et al. (2024) explicitly identify social network effects as an important modeling consideration in ABM energy demand. Empirical evidence supports the weight of this channel. Du et al. (2024) examined the influence of social networks on the adoption of energy-efficient replacements for inefficient appliances. They found that approximately 80\% of respondents in low-barrier energy adoption scenarios were shaped by social factors, and that "peer effects exert a more substantial influence on adoption decisions than social norms," pointing to direct interpersonal influence rather than normative pressure. Mochi et al. (2025) reinforce these findings, showing that social comparison and group identification could lead to a decrease of 6.7\% to 11\% in total consumption. Although these studies refer to general electricity usage and appliances rather than changing usage times, it implies that electricity usage is influenced in some way through the social network.  Falandays and Smaldino (2022) provide a general theoretical background using \textit{Cultural Attractor Theory} and ABM. Through repeated social transmission, individually variable behaviors tend to converge toward stable attractor points within a population. This \textit{cognitive alignment} emerges from accumulated exposure to neighbors' patterns rather than from explicit coordination. This suggests that even modest social influence, can produce durable shifts in behavioral norms rather than short-lived nudge effects.
 
-This relatively optimistic and homogenetic view from Falandays and Smaldino (2022) on social influence does sit in tension with the habit literature by Häseler and Wulf (2024). Mochi et al. (2025) observe that social nudge effects vary significantly across different populations. In collectivist societies, peer comparison effectively drives behavior change due to the importance of group identity. As a result, this mechanism is less effective in individualistic societies, where personal autonomy and financial self-interest dominate decision-making. This implementation will integrate both ideas through the definition of agent types and their goals within the Cultural Attractor landscape.
+This relatively optimistic and homogenetic view from Falandays and Smaldino (2022) on social influence does sit in tension with the habit literature by Häseler and Wulf (2024). Mochi et al. (2025) observe that social nudge effects vary significantly across different populations. In collectivist societies, peer comparison effectively drives behavior change due to the importance of group identity. As a result, this mechanism is less effective in individualistic societies, where personal autonomy and financial self-interest dominate decision-making. 
 
 \subsection{ABM History within Energy Research} \label{subs:abmhistory}
 
-The electricity market forms a unique research challenge: it is simultaneously a technical system and a behavioral one, in which individual decisions aggregate into emergent system-level outcomes that neither the individual nor the system operator fully controls. According to a review study by Mundu et al. (2024), ABM is a suitable methodology for studying the entire range of the energy market, from integrating renewable energy to modeling demand and intervention effectiveness. They point out ABM’s ability to represent individual agents
-and emergent outcomes, which is an essential feature in studying reasons and consequences of decision-making on both a personal and system scale. The use of ABM in electricity research expanded as a consequence of market liberalization. Fatras et al. (2022) mention how the decentralization of market roles with prosumers, as described in Section~\ref{subs:shift}, created modeling problems that required agent-level reasoning. 
+The electricity market forms a unique research challenge: it is simultaneously a technical system and a behavioral one, in which individual decisions aggregate into emergent system-level outcomes that neither the individual nor the system operator fully controls. According to Mundu et al. (2024), Agent-Based Modeling (ABM) is a fitting methodology for analyzing the full spectrum of the energy market. Their review mentions its use in areas from renewable energy integration to demand forecasting and policy intervention. Importantly, they note ABM’s unique capabilities in representing autonomous behaviors of individual agents within the system. The use of ABM in electricity research expanded as a consequence of market liberalization. Fatras et al. (2022) mention how the decentralization of market roles with prosumers, as described in Section~\ref{subs:shift}, created modeling problems that profit from agent-level reasoning. 
 
-Fatras et al. (2022) developed an ABM framework to help large-scale industrial consumers, who directly bid for energy themselves rather than having an commercial DSO function as middleman. The tool evaluates which Danish dynamic pricing offering these buyers should participate in depending on their needs: the day-ahead market (where electricity is bought the day before delivery), the intraday market (real-time adjustments closer to delivery), and the frequency containment reserve market (where consumers automatically adjust consumption to keep the grid stable). The delivered model shows the practical role ABM can play in informing heterogenetic consumers, even after abstracting market dynamics.
+Fatras et al. (2022) developed an ABM framework to help large-scale industrial consumers, who directly bid for energy themselves rather than having an commercial DSO function as the middleman. The tool evaluates which dynamic pricing offering these buyers should participate in depending on their needs: the day-ahead market (where electricity is bought the day before delivery), the intraday market (real-time adjustments closer to delivery), and the frequency containment reserve market (where consumers automatically adjust consumption to keep the grid stable). The delivered model shows the practical role ABM can play in informing heterogenetic consumers, even after abstracting market dynamics.
 
-Vasiljevska et al. (2017) modeled residential demand within the context of EU smart meter rollouts. The study examined how installing smart meters results in a shift in behavior, as they provide consumers with newly accessible tools such as real-time pricing and home automation. Each household agent is characterized by four value dimensions: egoistic (financial savings), hedonic (comfort and convenience), biospheric (environmental protection), and altruistic (societal welfare). Agents are randomly assigned weights across these dimensions, which divides them into groups of archetypes. Then, agents evaluate electricity contracts based on their archetypal goals. Agents gain experience with pricing contracts over time and communicate that experience through a social network, influencing decisions within that network. The simulation tracks system-level outcomes such as electricity savings, CO2 reductions, comfort, and social welfare over the simulation period. This study's use of behavioral heterogenetic archetypes and the influence of a social network inspired the approach of this thesis.
+Where Fatras et al. (2022) operate at the industrial scale with a single rational consumer type, Vasiljevska et al. (2017) move to the residential level and introduce the behavioral complexity. They studied residential demand within the context of EU smart meter rollouts. The authors researched how installing smart meters can affect behavior, as they provide consumers with newly accessible tools such as real-time pricing and home automation. Each household agent is built on four value dimensions: egoistic (financial savings), hedonic (comfort and convenience), biospheric (environmental protection), and altruistic (societal welfare). Agents are randomly assigned weights across these dimensions, which divides them into groups of archetypes. Then, agents evaluate electricity contracts based on their archetypal goals. Agents gain experience with their contracts over time and communicate that experience through a social network, which influences decisions within that network. The simulation tracks system-level outcomes such as electricity savings, CO\textsubscript{2} reductions, comfort, and social welfare over the simulation period. This study's use of behavioral heterogenetic archetypes and the influence of a social network inspired the approach of this thesis.
 
-Williams et al. (2025) developed an ABM on New-Zealand neighborhood-level demand simulation. Rather than using fixed demand profiles, they model each agent's daily schedule by simulating wake times, sleep cycles, commuting, and work-from-home decisions. These routines were drawn from statistical distributions calibrated to local survey data. When agents are active at home, they interact with appliances according to switch-on probability distributions per appliance. Furthermore, the model includes socioeconomic heterogeneity: agent incomes are drawn from distributions, which feeds into a wealth coefficient that influences appliance availability and usage patterns. The agents' decisions emerge from these behavioral rules rather than being imposed top-down, allowing appliance-level variability to aggregate into realistic neighborhood-scale load shapes. The load aggregate was validated against empirical DSO data, and approached high temporal similarity. data. The success of this model and the bottom-up approach through appliance usage make this study a methodological framework for this project.
+Williams et al. (2025) developed an ABM on New-Zealand neighborhood-level demand simulation. Rather than coupling behavior to archetypes, like Vasiljevska et al. (2017), Williams et al. (2025) built demand usage bottom-up through appliance usage. Each agent's daily usage schedule is generated by simulating wake times, sleep cycles, commuting, and work-from-home decisions. These routines were drawn from statistical distributions that were based on local survey data. When agents are active at home, they interact with appliances according to switch-on probability distributions per appliance. Furthermore, the model includes socioeconomic heterogeneity: agent incomes are drawn from distributions, which feeds into a wealth coefficient that influences appliance availability and usage patterns. The agents' decisions emerge from these behavioral rules rather than being imposed top-down, allowing appliance-level variability to aggregate into realistic neighborhood-scale load shapes. The load aggregate was validated against empirical DSO data, and approached high temporal similarity. The success of this model and the bottom-up approach through appliance usage make this study the main methodological framework for this project.
 
-These models showcase how the field of electricity demand can be decomposed through this methodology. What none of these models systematically investigates, however, is how different configurations of theoretically-grounded behavioral types interact under dynamic pricing to produce emergent aggregate outcomes. Fatras et al. (2022) focus on a single rational large-scale consumer type, Vasiljevska et al. (2017) vary values but not the composition of types across a population and Williams et al. (2025) achieves high empirical accuracy but without considering heterogenetic behavioral architecture. The ABM presented in this thesis attempts to fill this gap. 
+These models show how the field of electricity demand can be decomposed through the ABM methodology. What none of these models systematically investigates, however, is how different configurations of theoretically-grounded behavioral types interact under dynamic pricing to produce emergent aggregate outcomes. Fatras et al. (2022) restrict their model to a single consumer type, focusing on large-scale industrial consumers. Vasiljevska et al. (2017) introduce behavioral heterogeneity, but archetype membership is determined by randomly assigned value weights at initialization, and the resulting population composition is not directly controlled or examined as an experimental variable. Williams et al. (2025) achieve strong empirical fit, with demand variation staying within a few percent of real DSO data, but model behavioral variation through socioeconomic differences rather than distinct behavioral architectures. The ABM presented in this thesis attempts to build on these studies, propose a new model, and fill this gap. 
 
 \section{Methods} \label{sec:Methods}
 
@@ -147,7 +144,7 @@ The ABM built for this thesis simulates agent's electricity demand based on gene
 
 \subsection{Data Sources} \label{subs:data}
 The OpenSTEF Liander 2024 dataset was used thrice in the building of this model. 
-It provided 15-minute electricity demand measurements for 55 Dutch local distribution networks, EPEX day-ahead hourly prices and solar park generation measurements for five Dutch solar park stations (OpenSTEF, 2024). The demand measurements of a residential area were used to calibrate the model on, the EPEX prices functioned as the baseline for the pricing model, and the solar measurements were used to calculate the elasticity factor within that pricing model. 
+It provided 15-minute electricity demand measurements for 55 Dutch local distribution networks, EPEX day-ahead hourly prices and solar park generation measurements for five Dutch solar park stations (Liander, 2024). The demand measurements of a residential area were used to calibrate the model on, the EPEX prices functioned as the baseline for the pricing model, and the solar measurements were used to calculate the elasticity factor within that pricing model. 
 
 A study by Yilmaz et al. (2017) delivered the hourly switch-on probabilities per appliance, which in turn was derived from a 2011 survey on UK appliance usage (Department of Energy \& Climate Change, 2014). While dated, the dataset’s high granularity and veracity make it a solid foundation for modern studies when calibrated to reflect current energy trends (Yilmaz et al. 2017; Williams et al., 2025). Despite its comprehensive list of appliances, Electric Vehicle (EV) charging schedules were not included. The EV switch-on probability curve was therefore estimated from Robinson et al. (2013) Figure 6, which was measured around the same time and place as the appliance data.
 
@@ -185,7 +182,7 @@ At the start of the simulation, each agent is assigned a fixed inventory of nine
 
 EV ownership is assigned per agent with a 5\% probability. This percentage is based on Dutch electric vehicle data ownership (RVO, 2026) and Western European averages for 2023 (Eurostat, 2025). These specific periods were chosen for alignment with the 2024 OpenSTEF Liander dataset, thereby granting a more robust model validation against current Western-European trends. EV charging power and duration are drawn from normal distributions with $\mu = 3.3$ kW and $\mu = 3.1$ hours respectively, sourced from Robinson et al. (2013), Table 4.
 
-Each appliance is assigned a 24-hour baseline probability distribution, which represents the likelihood of the appliance being switched on during any given hour. This baseline consists of normalized per-appliance hourly switch-on data from Yilmaz et al. (2017). These distributions are then transformed to a maximum of four Gaussian peaks per appliance, represented as [peak\_hour, peak\_magnitude, peak\_width], by fitting sums of Gaussians to the switch-on data. The number of Gaussian peaks per appliance is selected using the Bayesian Information Criterion (Schwarz, 1978). This criterion balances fit quality against model complexity and prevents unnecessary peaks. The peaks were then fitted with L-BFGS-B minimizer from the Scipy Python package (Virtanen et al., 2020).
+Each appliance is assigned a 24-hour baseline probability distribution, which represents the likelihood of the appliance being switched on during any given hour. This baseline consists of normalized per-appliance hourly switch-on data from Yilmaz et al. (2017). These distributions are then transformed to a maximum of four Gaussian peaks per appliance, represented as [peak\_hour, peak\_magnitude, peak\_width], by fitting sums of Gaussians to the switch-on data. The number of Gaussian peaks per appliance is selected using the Bayesian Information Criterion (Schwarz, 1978). This criterion balances fit quality against model complexity and prevents unnecessary peaks. The peaks were then fitted with L-BFGS-B minimizer from the Scipy package (Virtanen et al., 2020).
 
 Each simulated day, appliance use counts are determined through Bernoulli draws over the Yilmaz et al. (2017) hourly switch-on probabilities, capped at the agent's sampled maximum per appliance (Williams et al., 2025). For each scheduled activation, a start hour is sampled from the agent's current distribution, and a random quarter-hour offset is added for 15-minute resolution. Load at the agent's sampled power draw is spread across the corresponding runtime slots, with any activation extending past midnight carried into an overflow array. This overflow will then naturally spill over into the start of the next day. 
 
@@ -200,8 +197,8 @@ While this methodology established a baseline aggregate load with the expected d
 The effect of this calibration on the aggregate load profile relative to the Liander reference data is shown in Figure~\ref{fig:baseline_calibration}.
 \begin{figure}[h]  
     \centering
-    \includegraphics[width=\textwidth]{AdjustmentFigure}
-    \caption{The effect of calibration on the aggregate load profile relative to the Liander reference data.}
+    \includegraphics[width=\textwidth]{baseline_comparison.png}
+    \caption{The effect of calibration on the simulated aggregate load profile relative to the Liander reference data.}
     \label{fig:baseline_calibration}
 \end{figure}
 
@@ -334,38 +331,61 @@ where higher values indicate greater temporal concentration of demand and higher
 To capture the structural deformation of the daily load curve relative to a no-shift baseline, the Earth Mover's Distance (EMD) is computed as the Wasserstein distance between the day-29 load profile and the median load profile of a matched no-shift baseline. The value represents the minimum amount of work needed to transform one distribution into the other.
 
 \subsection{Technical Implementation} \label{subs:technical}
-Python, numpy, pandas, matplotlib, scipy, where to find code
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\toprule
+Component & Details & Version & Citation \\
+\midrule
+Language & Python & 3.12.8 & (Rossum, 2007) \\
+\addlinespace
+\multirow{4}{*}{Packages} & NumPy & 1.26.4 & (Harris et al., 2020) \\
+                          & Pandas & 2.2.2 & (McKinney, 2010) \\
+                          & SciPy & 1.13.1 & (Virtanen et al., 2020) \\
+                          & Matplotlib & 3.9.2 & (Hunter, 2007) \\
+\addlinespace
+Repository & GitHub Repository & --- & (Geschiere, 2026) \\
+\bottomrule
+\end{tabular}
+\caption{Technical Implementation Details}
+\label{tab:technical_implementation}
+\end{table}
+Instructions for running the model, analysis notebooks, and the synthetic data used in the results can all be found in the GitHub repository.
 
 \section{Results}
 To understand model behavior and outputs, the analysis will be presented in three parts. First, a qualitative analysis of the model's behavioral dynamics will be provided using a representative population to understand the system dynamics. This is followed by the statistical analysis of within-population behavioral group differences, addressing RQ1. Finally, the system-level effects of population composition are assessed, addressing RQ2. All simulations run for 30 days at 15-minute granularity. Bonferroni correction is applied throughout to control for multiple comparisons.
 Throughout the analysis, set population mixes will be referred to by their label. Refer to Table~\ref{tab:populations} for these labels and the associated population.
 
-\begin{table}
-    \caption{Overview of all simulated population compositions. Each label reflects the dominant behavioral characteristic of the population.}
+\begin{table}[h]
+    \centering
+    \small
+    \caption{Overview of simulated population compositions. Composition ratios are listed as Habit/Price/Social.}
     \label{tab:populations}
-    \begin{adjustbox}{center}
-        \small
-        \begin{tabular}{l l l p{5.5cm}}
-            \toprule
-            Label & habit / price / social & Used in & Purpose \\
-            \midrule
-            Habitual          & 90\% / 5\% / 5\%   & RQ1, RQ2      & Near-complete habit dominance; represents minimal DR adoption \\
-            Tipping           & 70\% / 5\% / 25\%  & RQ1, RQ2      & Social-leaning variant of Habitual; tests peer influence under habit dominance \\
-            Progressive       & 60\% / 30\% / 10\% & QA, RQ1, RQ2  & Mix with visible dynamics across all three groups \\
-            Balanced          & 50\% / 25\% / 25\% & RQ1, RQ2      & Equal spread of shift-dominant groups\\
-            Price-Maximalist  & 20\% / 70\% / 10\% & RQ2           & Extreme price-responsive majority; understand system dynamics of near-optimal DR composition \\
-            Social-Maximalist & 20\% / 10\% / 70\% & RQ2           & Extreme social majority; understand system dynamics of social heavy composition \\
-            \bottomrule
-        \end{tabular}
-    \end{adjustbox}
+    \begin{tabular}{l c l p{5.5cm}} % Increased Purpose width to 6.5cm
+        \toprule
+        Label & H/P/S (\%) & Scope & Purpose \\
+        \midrule
+        Habitual          & 90/5/5   & RQ1, 2   & Near-complete habit dominance; represents minimal DR adoption. \\
+        \addlinespace
+        Tipping           & 70/5/25  & RQ1, 2   & Social-leaning variant; tests peer influence under habit dominance. \\
+        \addlinespace
+        Progressive       & 60/30/10 & QA, RQ1, 2 & Mix with visible dynamics across all three groups. \\
+        \addlinespace
+        Balanced          & 50/25/25 & RQ1, 2   & Equal spread of shift-dominant groups. \\
+        \addlinespace
+        Price-Max.        & 20/70/10 & RQ2      & Price-responsive majority; tests system dynamics of near-optimal DR. \\
+        \addlinespace
+        Social-Max.       & 20/10/70 & RQ2      & Social majority; tests system dynamics of social-heavy composition. \\
+        \bottomrule
+    \end{tabular}
 \end{table}
 
 
 
 \subsection{Qualitative Analysis} \label{subs:QA}
 
-In Qualitative Analysis, the model's behavior using the Progressive population at N = 500 is examined. This composition was selected because it contains a good share of all three behavioral groups, making the shifting dynamics across both channels visible.
-
+In Qualitative Analysis, model behavior using the Progressive population at N = 500 is examined. This composition was selected because it contains a good share of all three behavioral groups, making the shifting dynamics across both channels visible.
 
 \begin{figure}[h]  
     \centering
@@ -385,7 +405,7 @@ Figure~\ref{fig:QAaccload} compares the aggregate load curve on day 0, where onl
 
 Figure~\ref{fig:QAheatmap} presents the evolution of hourly prices across the 30 simulated days. Reading down a column shows the price shape on a given day, reading across a row reveals how a specific hour's price evolves over time. The expensive evening hours gradually become cheaper as aggregate demand shifts away from them. The resulting midday price increase is minimal and barely visible due to the low solar elasticity factor. The fluctuations in morning prices are slightly more pronounced, due to the high elasticity factor amplifying the impact of increased demand in early hours. 
 
-\begin{figure}[h]  
+\begin{figure}  
     \centering
     \includegraphics[width=\textwidth]{fig4_cumulative_shift_contributions}
     \caption{Cumulative demand-shift contributions by channel for each behavioral group}
@@ -402,26 +422,17 @@ Violations of Shapiro-Wilk tests and Levene's test indicated significant departu
 
 All twelve omnibus tests ($4 \text{ populations} \times 3 \text{ metrics}$) were significant after Bonferroni correction across the three metrics ($p_{\text{bonferroni}} < 0.001$, $\alpha = .05$). For flexibility and adjustment, the Kruskal-Wallis $H$-statistic was $79.121$ across all four populations, with $\epsilon^2$ values ranging from $0.874$ to $0.886$. This consistency indicates that the three behavioral groups maintain complete rank separation on these metrics regardless of the population composition they are embedded in. For normalized cost, the separation was slightly weaker, with $\epsilon^2$ values between $0.670$ and $0.805$, reflecting greater overlap between habit-driven and social-influenced agents on this metric.
 
-\begin{table}
-    \caption{Kruskal-Wallis omnibus results and group-level summary statistics per
-    metric across all four population compositions ($N = 500$, $n = 30$ per
-    group-population cell). Values are reported as mean $\pm$ SD. $\varepsilon^2$ denotes epsilon squared
-    (Kruskal-Wallis effect size). All $p_{\text{bon}}$ values are Bonferroni-corrected
-    across three metrics ($\alpha = .05$).}
+\begin{table}[p]
+    \centering
+    \small
+    \caption{Kruskal-Wallis omnibus results and group-level summary statistics per metric across all four population compositions ($N = 500$, $n = 30$ per group-population cell). Values are reported as Mean $\pm$ SD. $\varepsilon^2$ denotes epsilon squared. All $p_{\text{bon}}$ values are Bonferroni-corrected.}
     \label{tab:rq1_summary}
-    \begin{adjustbox}{center}
-        \small
+    \rotatebox{270}{
         \begin{tabular}{ll ccc r l r}
             \toprule
             & & \multicolumn{3}{c}{Mean $\pm$ SD} & & & \\
             \cmidrule(lr){3-5}
-            Population & Metric
-                & Habit-driven
-                & Price-responsive
-                & Social-influenced
-                & $H$
-                & $p_{\text{bon}}$
-                & $\varepsilon^2$ \\
+            Population & Metric & Habit & Price & Social & $H$ & $p_{\text{bon}}$ & $\varepsilon^2$ \\
             \midrule
             \multirow{3}{*}{Habitual}
                 & Flexibility (hrs/day)   & $1.254 \pm 0.035$ & $5.525 \pm 0.240$ & $2.165 \pm 0.289$ & 79.121 & $< .001$ & 0.886 \\
@@ -444,7 +455,7 @@ All twelve omnibus tests ($4 \text{ populations} \times 3 \text{ metrics}$) were
                 & Adjustment day-29 (hrs) & $1.103 \pm 0.032$ & $3.200 \pm 0.074$ & $1.554 \pm 0.035$ & 79.121 & $< .001$ & 0.886 \\
             \bottomrule
         \end{tabular}
-    \end{adjustbox}
+    }
 \end{table}
 
 
@@ -463,7 +474,7 @@ Figure~\ref{fig:rq1headline} illustrates these distributional differences. Sligh
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{fig3_cost_comfort_scatter_updated.png}
+  \includegraphics[width=\textwidth]{fig3_cost_comfort_scatter.png}
   \caption{Day-29 adjustment (schedule disruption, hours) versus normalized cost (cost per kWh) at the mean and day-29.} 
   \label{fig:rq1costcomfort}
 \end{figure} 
@@ -546,7 +557,7 @@ Future work could extend this framework in several directions. Sensitivity analy
 
 This thesis presented an agent-based model for studying how heterogeneous household behavior shapes residential demand within a variable-priced electricity system. The framework simulates how household schedules and electricity prices evolve over a 30-day period. It separates three types of behaviors: habits, price responses, and social influences. These behaviors and appliance-usage baselines are exposed to a social network, and a dynamic pricing system that reacts to demand fluctuations.
  
-In response to RQ1, the simulation indicated that behavioral architecture formed a substantial driver of individual flexibility and adjustment within this model, with near-complete rank separation observed across all four plausible population compositions. Under the chosen parameterization, price-responsive agents shifted approximately four times more per day than habit-driven agents. Furthermore, they achieved the lowest normalized cost, while socially-influenced agents occupied an intermediate position whose cost benefit varied depending surrounding behavioral mix.
+In response to RQ1, the simulation indicated that behavioral architecture formed a substantial driver of individual flexibility and adjustment within this model. Near complete rank separation was observed across all four tested population compositions. Under the chosen parameterization, price-responsive agents shifted approximately four times more per day than habit-driven agents. Furthermore, they achieved the lowest normalized cost, while socially-influenced agents occupied an intermediate position whose cost benefit varied depending surrounding behavioral mix.
  
 In response to RQ2, population composition drove every system metric within the model, explaining over 83\% of rank variance in each. The Price-Maximalist composition produced the largest aggregate load deformation and the most favorable price advantage. Compositions with a smaller price-responsive share, most notably Tipping, produced minimal deformation despite the social-influenced proportions. This suggests that social agents in this model require sufficient exposure to price-responsive peers to shift in a meaningful way. Network size did not meaningfully affect any behavioral or cost-related metric apart from PAR, indicating that the composition effects observed are stable across the tested population scales.
  
@@ -560,7 +571,7 @@ REFERENCES BELOW ARE FROM THE UNI TEMPLATE
 \begin{figure}[p] % [p] gives it a dedicated page for maximum size
     \centering
     \makebox[\textwidth][c]{%
-        \includegraphics[width=1.15\textwidth]{simulation_pipeline}
+        \includegraphics[width=1.15\textwidth]{ simulation_pipeline.png}
     }
     \caption{Schematic representation of the simulation pipeline.}
     \label{fig:simulation_pipeline}
