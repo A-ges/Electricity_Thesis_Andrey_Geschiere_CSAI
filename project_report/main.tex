@@ -1,7 +1,5 @@
 \documentclass[11pt, a4paper]{article}
 \usepackage[nochapters]{classicthesis}                              % template
-\usepackage{adjustbox}
-
 \usepackage[margin=42mm]{geometry}                                  % margins
 \usepackage[utf8]{inputenc}                                         % allow utf-8 input
 \usepackage[T1]{fontenc}                                            % use 8-bit T1 fonts
@@ -124,7 +122,7 @@ Price responsiveness functions as the behavioral counterpart: the agent who acti
 
 Social influence constitutes the third mechanism in this ABM. Johanning et al. (2024) explicitly identify social network effects as an important modeling consideration in ABM energy demand. Empirical evidence supports the weight of this channel. Du et al. (2024) examined the influence of social networks on the adoption of energy-efficient replacements for inefficient appliances. They found that approximately 80\% of respondents in low-barrier energy adoption scenarios were shaped by social factors, and that "peer effects exert a more substantial influence on adoption decisions than social norms," pointing to direct interpersonal influence rather than normative pressure. Mochi et al. (2025) reinforce these findings, showing that social comparison and group identification could lead to a decrease of 6.7\% to 11\% in total consumption. Although these studies refer to general electricity usage and appliances rather than changing usage times, it implies that electricity usage is influenced in some way through the social network.  Falandays and Smaldino (2022) provide a general theoretical background using \textit{Cultural Attractor Theory} and ABM. Through repeated social transmission, individually variable behaviors tend to converge toward stable attractor points within a population. This \textit{cognitive alignment} emerges from accumulated exposure to neighbors' patterns rather than from explicit coordination. This suggests that even modest social influence, can produce durable shifts in behavioral norms rather than short-lived nudge effects.
 
-This relatively optimistic and homogenetic view from Falandays and Smaldino (2022) on social influence does sit in tension with the habit literature by Häseler and Wulf (2024). Mochi et al. (2025) observe that social nudge effects vary significantly across different populations. In collectivist societies, peer comparison effectively drives behavior change due to the importance of group identity. As a result, this mechanism is less effective in individualistic societies, where personal autonomy and financial self-interest dominate decision-making. 
+This relatively optimistic and homogenetic view from Falandays and Smaldino (2022) on social influence does sit in tension with the habit literature by Häseler and Wulf (2024). \cite{mochi_social_2025} observe that social nudge effects vary significantly across different populations. In collectivist societies, peer comparison effectively drives behavior change due to the importance of group identity. As a result, this mechanism is less effective in individualistic societies, where personal autonomy and financial self-interest dominate decision-making. 
 
 \subsection{ABM History within Energy Research} \label{subs:abmhistory}
 
@@ -407,7 +405,7 @@ Figure~\ref{fig:QAheatmap} presents the evolution of hourly prices across the 30
 
 \begin{figure}  
     \centering
-    \includegraphics[width=\textwidth]{fig4_cumulative_shift_contributions}
+    \includegraphics[width=\textwidth]{fig4_cumulative_shift_contributionsup}
     \caption{Cumulative demand-shift contributions by channel for each behavioral group}
     \label{fig:QAshiftcontr}
 \end{figure}
