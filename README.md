@@ -105,7 +105,7 @@ This returns four pandas DataFrames / numpy arrays:
 - `load_profiles` — `(days, 96)` aggregate kW per 15-minute slot
 - `df_pricing` — per-day, per-hour price (baseline vs used)
   
-> Metrics like Gini, were implemented but not used in the final thesis
+> Some metrics (e.g. Gini, variance), were implemented but not used in the final thesis
 
 `runhere.ipynb` shows the same example with a small population (`300c`, 10 days)
 and prints output shapes. Refer to the docstring of `run_model` for all
@@ -122,7 +122,7 @@ the strength of the habit, price, and social shifting channels.
 | SciPy | 1.13.1 |
 | Matplotlib | 3.9.2 |
 | Statsmodels | 0.14.2 |
-| huggingface_hub | only required to re-pull Liander parquet files in `groundwork/` |
+| huggingface_hub | only required to get Liander parquet files in the groundwork folder |
 
 ## Data Sources
 
