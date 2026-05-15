@@ -1,0 +1,13 @@
+population,metric,Habit,Price,Social,test,statistic,p_bonferroni,effect_size,effect_label,significant
+Habitual,Mean flexibility (hrs/day),1.254 +/- 0.035,5.525 +/- 0.24,2.165 +/- 0.289,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes
+Habitual,Mean norm. cost (price/kWh),8.772 +/- 0.033,7.929 +/- 0.055,8.798 +/- 0.043,Kruskal-Wallis,61.748,0.0,0.687,epsilon_sq,yes
+Habitual,Adjustment day-29 (hrs),0.915 +/- 0.022,3.296 +/- 0.063,1.023 +/- 0.062,Kruskal-Wallis,78.08,0.0,0.874,epsilon_sq,yes
+Progressive,Mean flexibility (hrs/day),1.458 +/- 0.041,5.874 +/- 0.13,2.612 +/- 0.121,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes
+Progressive,Mean norm. cost (price/kWh),8.645 +/- 0.037,7.912 +/- 0.022,8.594 +/- 0.026,Kruskal-Wallis,72.07,0.0,0.805,epsilon_sq,yes
+Progressive,Adjustment day-29 (hrs),1.12 +/- 0.028,3.231 +/- 0.074,1.619 +/- 0.038,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes
+Tipping,Mean flexibility (hrs/day),1.246 +/- 0.032,5.529 +/- 0.292,2.052 +/- 0.108,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes
+Tipping,Mean norm. cost (price/kWh),8.777 +/- 0.031,7.946 +/- 0.05,8.769 +/- 0.043,Kruskal-Wallis,60.26,0.0,0.67,epsilon_sq,yes
+Tipping,Adjustment day-29 (hrs),0.917 +/- 0.021,3.306 +/- 0.087,1.044 +/- 0.029,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes
+Balanced,Mean flexibility (hrs/day),1.439 +/- 0.048,5.845 +/- 0.126,2.468 +/- 0.057,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes
+Balanced,Mean norm. cost (price/kWh),8.663 +/- 0.035,7.933 +/- 0.036,8.617 +/- 0.041,Kruskal-Wallis,68.91,0.0,0.769,epsilon_sq,yes
+Balanced,Adjustment day-29 (hrs),1.103 +/- 0.032,3.2 +/- 0.074,1.554 +/- 0.035,Kruskal-Wallis,79.121,0.0,0.886,epsilon_sq,yes

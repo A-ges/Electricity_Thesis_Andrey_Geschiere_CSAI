@@ -1,0 +1,7 @@
+metric,H,p_raw,p_bonferroni,effect_size,effect_label,significant
+mean_cost_norm,2.62,0.6232,1.0,-0.002,epsilon_sq,False
+mean_price_advantage,0.475,0.9759,1.0,-0.004,epsilon_sq,False
+emd_vs_baseline,0.176,0.9963,1.0,-0.004,epsilon_sq,False
+par_mean,524.606,0.0,0.0,0.582,epsilon_sq,True
+mean_flexibility,4.413,0.353,1.0,0.0,epsilon_sq,False
+mean_adjustment,6.803,0.1467,0.88,0.003,epsilon_sq,False

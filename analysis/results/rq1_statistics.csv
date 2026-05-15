@@ -1,0 +1,49 @@
+population,metric,test,statistic,p_raw,p_bonferroni,effect_size,effect_label,significant,pair
+Habitual,flex_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Habitual,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Habitual,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Habitual,flex_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Habitual,cost_norm_mean,Kruskal-Wallis,61.748,0.0,0.0,0.687,epsilon_sq,True,all groups
+  Habitual,cost_norm_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Habitual,cost_norm_mean,Mann-Whitney U,293.0,0.0207,0.1861,-0.349,rank_biserial_r,False,Habit-driven vs Social-influenced
+  Habitual,cost_norm_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Habitual,adjustment_mean,Kruskal-Wallis,78.08,0.0,0.0,0.874,epsilon_sq,True,all groups
+  Habitual,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Habitual,adjustment_mean,Mann-Whitney U,12.0,0.0,0.0,-0.973,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Habitual,adjustment_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Progressive,flex_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Progressive,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Progressive,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Progressive,flex_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Progressive,cost_norm_mean,Kruskal-Wallis,72.07,0.0,0.0,0.805,epsilon_sq,True,all groups
+  Progressive,cost_norm_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Progressive,cost_norm_mean,Mann-Whitney U,811.0,0.0,0.0,0.802,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Progressive,cost_norm_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Progressive,adjustment_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Progressive,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Progressive,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Progressive,adjustment_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Tipping,flex_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Tipping,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Tipping,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Tipping,flex_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Tipping,cost_norm_mean,Kruskal-Wallis,60.26,0.0,0.0,0.67,epsilon_sq,True,all groups
+  Tipping,cost_norm_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Tipping,cost_norm_mean,Mann-Whitney U,547.0,0.1537,1.0,0.216,rank_biserial_r,False,Habit-driven vs Social-influenced
+  Tipping,cost_norm_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Tipping,adjustment_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Tipping,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Tipping,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Tipping,adjustment_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Balanced,flex_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Balanced,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Balanced,flex_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Balanced,flex_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Balanced,cost_norm_mean,Kruskal-Wallis,68.91,0.0,0.0,0.769,epsilon_sq,True,all groups
+  Balanced,cost_norm_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Balanced,cost_norm_mean,Mann-Whitney U,763.0,0.0,0.0,0.696,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Balanced,cost_norm_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
+Balanced,adjustment_mean,Kruskal-Wallis,79.121,0.0,0.0,0.886,epsilon_sq,True,all groups
+  Balanced,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Price-responsive
+  Balanced,adjustment_mean,Mann-Whitney U,0.0,0.0,0.0,-1.0,rank_biserial_r,True,Habit-driven vs Social-influenced
+  Balanced,adjustment_mean,Mann-Whitney U,900.0,0.0,0.0,1.0,rank_biserial_r,True,Price-responsive vs Social-influenced
