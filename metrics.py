@@ -54,8 +54,8 @@ def compute_social_targets_for_agent(agent, previous_day_contacts, agents_by_id,
     -> appliance_names: appliances to compute targets for
 
     Returns a dict keyed by appliance name, where each value is itself a dict
-    mapping peak index to mean center: {appliance: {0: mean_peak_0, 1: mean_peak_1, ...}}
-    or None if no contacts used the appliance yesterday
+    mapping peak index to mean center: {appliance: {0: mean_peak_0, 1: mean_peak_1, etc}}
+    or none if no contacts used the appliance yesterday
     """
     social_targets = {}  #will hold one entry per appliance
     contact_ids = previous_day_contacts[agent.agent_id]  #get this agent's daily contacts from yesterday
@@ -147,18 +147,10 @@ def compile_agent_day_metrics(agent, day, load, prices, is_last_day=False):
  
     price_advantage = mean_price_today - agent_effective_price #positive = paid less than average, negative = more
 
-    #CHANGED: added minimum threshold before computing savings_per_flex
-    #social-influenced agents have price_sens drawn from Beta(0.5, 4.5) which can produce values near 0
-    #on day 1, social_flex = 0 (all agents start at the same centers) and a near-zero price_sens gives
-    #total_flex ≈ 0 as well. dividing any nonzero price_advantage by near-zero total_flex produces
-    #extreme outliers (e.g. -200) that distort savings_per_flex_social_inss fluenced_mean across all days
-    #the threshold of 0.5 requires at least 0.5 hours of total peak shift acroall appliances,
-    #which price-responsive (flex ≈ 8) and habit agents (flex ≈ 5) comfortably exceed on every shift day
-    #but filters out near-zero-price_sens social agents on day 1 where the metric is not meaningful
     if total_flex > 0.0:
         savings_per_flex = price_advantage / total_flex
     else:
-        savings_per_flex = float("nan")  #not meaningful when agent has barely shifted
+        savings_per_flex = float("nan")  #not meaningful when agent has barely shifted/div by zero
 
     return {
         "day": day,
@@ -244,6 +236,7 @@ def compile_day_metrics(day, aggregate, prices, agent_records):
             group_stats[f"adjustment_{key}_mean"] = float(subset["individual_adjustment"].mean())
             group_stats[f"savings_per_flex_{key}_mean"] = float(subset["savings_per_flex"].mean(skipna=True))
             group_stats[f"n_{key}"] = int(len(subset))
+            
         
         else:
             #group not present in this run, fill with NaN to avoid errors
