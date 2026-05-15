@@ -49,7 +49,7 @@ solar-elasticity factor calibrated on the OpenSTEF Liander 2024 dataset.
 │   │   └── 📄 RQ2fig1gen.ipynb        # day-29 aggregate curves
 │   ├── 📁 results               # cached outputs from the datagenerators
 │
-└── 📁 project_report            # LaTeX source of the thesis
+└── 📁 project_report            # LaTeX backup of the thesis
 ```
 
 > The notebooks in `analysis/` are working notebooks they generate the figures
