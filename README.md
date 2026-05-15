@@ -1,6 +1,6 @@
 # From Household Decisions to Electric Grid Patterns
 
-> Bachelor Thesis project in Cognitive Science & Artificial Intelligence at Tilburg University.
+> Bachelor Thesis | Cognitive Science & Artificial Intelligence | Tilburg University.
 
 ## Overview
 
