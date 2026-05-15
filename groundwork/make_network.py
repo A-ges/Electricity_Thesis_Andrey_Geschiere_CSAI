@@ -54,28 +54,24 @@ def make_network(agents, link_density=0.08, degree_heterogeneity=1.5, clustering
     for i in range(N):    #Mappings to self will turn out to be 0's, for now just initialize
         G.append([0] * N) #for every agent, add a row of N zero's 
 
-    #-------------------------------------
-    #Computing Hamiltonian beta values 
-    #Used to plug into the Hamiltonian H(G) = beta_m*(...)^2 + beta_l*(...)^2 + beta_t*(...)^2
-    #"Higher values of these parameters will attribute lower probabilities to networks further from the mode" (House, 2014)
+    """
+    Computing Hamiltonian beta values 
+    Used to plug into the Hamiltonian H(G) = beta_m*(...)^2 + beta_l*(...)^2 + beta_t*(...)^2
+    "Higher values of these parameters will attribute lower probabilities to networks further from the mode" (House, 2014)
 
-    #Values/formulas are from House (2014), equation 12:
-    #   beta_m = 1 / (2*sigma^2) 
-    #   beta_l = (theta_l + theta_m*(N-1) − 1) * beta_m
-    #   beta_t = theta_t * beta_l
-    #------------------------------------
+    Values/formulas are from House (2014), equation 12:
+    beta_m = 1 / (2*sigma^2) 
+    beta_l = (theta_l + theta_m*(N-1) − 1) * beta_m
+    beta_t = theta_t * beta_l
+    """
 
     beta_m = 0.25 #0.25 was found to perform well according to House (2014)
     beta_l = (degree_heterogeneity + link_density * (N - 1) - 1) * beta_m
     beta_t = clustering_coef * beta_l
 
-    #--------------------------------------------------------------------
+    
     #Defining the Hamiltonian, refer to equation 11 from House 2014
-    #
-    #H(M, L, T) measures how far the current network is from the three
-    #parameter set targets. Lower H = network is closer to parameters.
-    #--------------------------------------------------------------------
-
+    #H(M, L, T) measures how far the current network is from the three parameter set targets. Lower H = network is closer to parameters.
     def hamiltonian(M, L, T):
         """
         Compute Hamiltonian given the current network statistics
@@ -95,13 +91,6 @@ def make_network(agents, link_density=0.08, degree_heterogeneity=1.5, clustering
         term_t = beta_t * (T - (clustering_coef * L)) ** 2
 
         return term_m + term_l + term_t
-
-    #----------------------------------------------------------------------------
-    #Updating of M, L, T
-    #
-    #Recomputing MLT from scratch at every MCMC step would be O(N^2) per
-    #step. Instead, compute only the change caused by flipping edge (i,j)
-    #----------------------------------------------------------------------------
 
     def delta_statistics(i, j):
         """
@@ -147,17 +136,15 @@ def make_network(agents, link_density=0.08, degree_heterogeneity=1.5, clustering
     for i in range(N):
         for j in range(i + 1, N):
             all_edges.append((i, j)) 
+    """
+    Loop with the MCMC algorithm -> Refer to Equation 13 from House (2014)
     
-    #----------------------------------------------------------
-    #Loop with the MCMC algorithm -> Refer to Equation 13 from House (2014)
-    #
-    #At each step:
-    #   1. Pick a random edge (i, j) to consider flipping
-    #   2. Compute the change in Hamiltonian ΔH = H_proposed − H_current
-    #   3. Always accept the flip if delta_Hamiltonian <= 0 (proposed state is closer to targets)
-    #   -> IF proposed state is worse -> Accept the flip with probability exp(-delta_H) 
-    #----------------------------------------------------------
-
+    At each step:
+     1. Pick a random edge (i, j) to consider flipping
+     2. Compute the change in Hamiltonian ΔH = H_proposed − H_current
+     3. Always accept the flip if delta_Hamiltonian <= 0 (proposed state is closer to targets)
+    -> IF proposed state is worse -> Accept the flip with probability exp(-delta_H) 
+    """
     for step in range(steps):
 
         #Pick a random edge to consider flipping
@@ -231,7 +218,7 @@ def generate_predefined_networks(agent_sizes, n_variants, output_file="networks.
     for size in agent_sizes:
         print(f"\nGenerating networks for N={size}")
 
-        # build agent names
+        #build agent names
         agents = ["AG" + str(i).zfill(3) for i in range(size)]
 
         for i in range(n_variants):
