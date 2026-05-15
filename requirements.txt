@@ -1,0 +1,8 @@
+numpy==1.26.4
+pandas==2.2.2
+scipy==1.13.1
+matplotlib==3.9.2
+statsmodels==0.14.2
+
+# Only needed to regenerate baselines from OpenSTEF Liander 2024 in groundwork/
+huggingface_hub
