@@ -15,12 +15,13 @@ beta_parameters = {
     "Social-influenced": {
         "habit":  {"mu": 0.70, "K": 20},
         "price":  {"mu": 0.10, "K": 5},
-        "social": {"mu": 0.85, "K": 10}}
-}
+        "social": {"mu": 0.85, "K": 10}}}
+
 #main group variable should be high in any group
+#Refer to related work section two for the full up-to-date reasoning
 #------------HABIT-------------
 #Habit agents have a lower price responsivity in general, because of unknowingness or lack of interest in self induced shift
-#Habit agents have a higher social influence parameter in general, allowing them to somewhat pivot towards a better strategy in case their network incentivises them. This follows the Cultural Attractor Theory as mentioned in Falandays & Smaldino (2022) 
+#Habit agents have a higher social influence parameter in general, allowing them to somewhat pivot towards a better strategy in case their network incentivises them. 
 
 #------------PRICE-------------
 #Price responsive agents have some habit, but are allowed to spread more to indicate their stance towards flexibility
@@ -43,15 +44,14 @@ def Param_Init(habit_num, price_num, social_num, random_state=None):
     -> social_num: Number of Social-influenced agents
     -> random_state
 
-    Returns a Pandas df with one row per agent with columns [dominant_group | habit_str | price_sens | soc_suc]
+    Returns a pandas df with one row per agent with columns [dominant_group | habit_str | price_sens | soc_suc]
     """
     rng = np.random.default_rng(random_state) #setting the same random seed for all random decisions in this file
 
     mix = {
         "Habit-driven": habit_num,
         "Price-responsive": price_num,
-        "Social-influenced": social_num,
-    }
+        "Social-influenced": social_num}
 
     all_agents = []
 
@@ -59,7 +59,6 @@ def Param_Init(habit_num, price_num, social_num, random_state=None):
         group_cfg = beta_parameters[group_name]
 
         for i in range(count):   #loop to draw from all beta distributions for every agent
-                                 #Uses np.random.beta for draws, refer to https://numpy.org/doc/stable/reference/random/generated/numpy.random.beta.html
             agent = {
                 "dominant_group": group_name,
 
@@ -71,8 +70,7 @@ def Param_Init(habit_num, price_num, social_num, random_state=None):
 
                 "soc_suc": rng.beta(
                     group_cfg['social']['mu'] * group_cfg['social']['K'],
-                    (1 - group_cfg['social']['mu']) * group_cfg['social']['K'])
-            }
+                    (1 - group_cfg['social']['mu']) * group_cfg['social']['K'])}
             all_agents.append(agent)
 
     return pd.DataFrame(all_agents)
