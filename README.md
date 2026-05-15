@@ -126,6 +126,8 @@ the strength of the habit, price, and social shifting channels.
 
 ## Data Sources
 
+All synthetic data analysed in the thesis was generated with the model in this repository.
+
 Empirical baselines used in the model:
 
 - **OpenSTEF Liander 2024** -> 15-minute residential demand, EPEX day-ahead prices,
@@ -135,4 +137,4 @@ Empirical baselines used in the model:
 - **Williams et al. (2025)** -> appliance power and runtime distributions, baseline
   load magnitude, and the bottom-up methodological framework.
 
-All synthetic data analysed in the thesis was generated with the model in this repository.
+For full references and an understanding of the methodology, refer to the thesis.
