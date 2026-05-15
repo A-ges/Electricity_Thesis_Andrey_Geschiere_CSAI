@@ -43,12 +43,11 @@ solar-elasticity factor calibrated on the OpenSTEF Liander 2024 dataset.
 │   ├── 📄 qualitativeanalysis.ipynb  # qualitative analysis (Section 5.1)
 │   ├── 📄 RQ1.ipynb             # within-population group differences (RQ1)
 │   ├── 📄 RQ2.ipynb             # system-level composition effects (RQ2)
-│   ├── 📁 datagenerators        # scripts that produce the cached result CSVs/NPZs
+│   ├── 📁 datagenerators        # scripts that produce the cached results
 │   │   ├── 📄 datagenerator.ipynb     # main grid runner
 │   │   ├── 📄 RQ1figgen.ipynb         # cost-comfort figure data
 │   │   └── 📄 RQ2fig1gen.ipynb        # day-29 aggregate curves
 │   ├── 📁 results               # cached outputs from the datagenerators
-│   └── 📁 figures               # generated figures, organized per RQ
 │
 └── 📁 project_report            # LaTeX source of the thesis
 ```
