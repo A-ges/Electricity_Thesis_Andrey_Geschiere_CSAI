@@ -33,7 +33,7 @@ Load Synchronization in Variable-Priced Electricity Systems}             % subti
 \def\supervisor{Dr. Travis J. Wiltshire}                           % check the title(s) of your supervisor
 \def\committee{Parto Shahroudi, MSc.}                               % check the title(s) of your second reader
 \def\acknowledgments{I want to express my gratitude toward my supervisor, Dr. Travis J. Wiltshire, for asking the right questions and steering this thesis toward completion with needed advice. I would also like to thank my thesis group members, Bram de Waal and Soham Desriaux, for providing an outside perspective and for recognizing progress that I often overlooked while immersed in the details of the project. Finally, I want to thank my parents, roommates, and Tilburg University Library personnel for providing the perfect environment to focus on this project.}
-\def\wordcount{8158}
+\def\wordcount{8169}
 % METADATA
 
 \hypersetup{pdfauthor   = {Andrey Geschiere},
@@ -347,7 +347,7 @@ To capture the structural deformation of the daily load curve relative to a no-s
     \bottomrule
     \end{tabular}
 \end{table}
-Instructions for running the model, analysis notebooks, and the synthetic data used in the results can all be found in the GitHub repository.
+Instructions for running the model, analysis notebooks, and the synthetic data used in the results can all be found in the GitHub repository. Used packages and associated versions can be found in Table~\ref{tab:technical_implementation}.
 
 \section{Results}
 The results will be presented in three parts. First, a qualitative analysis of the model's behavioral dynamics will be provided using a representative population to understand the system dynamics. This is followed by the statistical analysis of within-population behavioral group differences, addressing RQ1. Finally, the system-level effects of population composition are assessed, addressing RQ2. All simulations run for 30 days at 15-minute granularity. Bonferroni correction is applied throughout to control for multiple comparisons.
@@ -466,19 +466,21 @@ Pairwise Mann-Whitney $U$ tests confirmed significant differences between all gr
   \label{fig:rq1headline}
 \end{figure} 
 
-Figure~\ref{fig:rq1headline} illustrates these distributional differences. Slightly separated distributions on flexibility and adjustment are visible, while the overlap between habit-driven and social-influenced agents on normalized cost confirms the pattern identified in the pairwise tests. Price-responsive agents consistently form a distinct group across all metrics.
-
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{images/fig3_cost_comfort_scatter.png}
   \caption{Day-29 adjustment (schedule disruption, hours) versus normalized cost (cost per kWh) at the mean and day-29.} 
   \label{fig:rq1costcomfort}
 \end{figure} 
 
+Figure~\ref{fig:rq1headline} illustrates these distributional differences. Slightly separated distributions on flexibility and adjustment are visible, while the overlap between habit-driven and social-influenced agents on normalized cost confirms the pattern identified in the pairwise tests. Price-responsive agents consistently form a distinct group across all metrics.
+
 Figure~\ref{fig:rq1costcomfort} shows the cost-comfort trade-off per behavioral group across all four populations. It plots day-29 adjustment against two cost measures: the mean normalized cost averaged across all 30 simulated days (left panel) and the normalized cost on day 29 only (right panel). Adjustment serves as a proxy for schedule disruption: a higher value means an agent's appliance usage has shifted further from its day 0 timing. Immediately visible is the high dependence on population type for social-influenced agents. A price-responsive-heavy population leads to a decrease in price and an increase in adjustment for social agents. Price-responsive agents produce a highly variable point cloud with outliers in low-shift populations. In these low-shift populations, midday prices face less upward pressure because fewer price-responsive agents are shifting demand there, leading to very low costs. Habit-driven agents land around the same price point as socially-influenced agents, despite not adjusting as much. The withdrawal of the two active shifting groups from conservative demand times may have reduced prices there, benefiting the remaining habitual agents. This may seem disadvantageous to social agents, who receive minimal financial return for their adjustment. However, their shift remains beneficial for system stability. The fitted lines give a good indication of change in the cost-comfort trade-off within a behavioral group as the population type changes, with socially-influenced agents showing the steepest slope and thus greatest sensitivity to population composition.
 
 \subsection{System Behavior} \label{subs:rq2}
 This section examines how population composition affects system-level outcomes, addressing RQ2. Six populations were tested: the four from Section~\ref{subs:rq1} plus Price-Maximalist and Social-Maximalist (Table~\ref{tab:populations}). Checks regarding robustness of the model over network sizes occurred over $N$ = 100, 250, 500, 750, and 1,000. Six system-level metrics were evaluated: PAR, normalized cost, price advantage, per-agent flexibility, adjustment, and EMD. EMD was computed as the Wasserstein distance between the day-29 load profile and the median load profile of a matched no-shift baseline. This matched-baseline design isolates the effect of behavioral shifting from composition effects, as each baseline run shares the same population, network size, and random seed but has price and social shifting disabled ($\varepsilon_{\text{price}} = \varepsilon_{\text{social}} = 0$). Each configuration was run 30 times (10 seeds $\times$ 3 network variants).
+
+\pagebreak
 
 Network size effects were first tested as a robustness check by pooling across populations. This was done to verify whether the findings were not dependent on $N$. Kruskal-Wallis tests confirmed that normalized cost, price advantage, EMD, per-agent flexibility, and adjustment showed no significant dependence on $N$, indicating that the behavioral outcomes of the model are stable across population scales. PAR was the only metric significantly affected by $N$ ($H = 524.606$, $p_{\text{Bonferroni}} < 0.001$), showing stronger peaks at smaller network sizes compared to the mean load.
 
@@ -515,6 +517,7 @@ Population composition, tested at $N = 500$, produced significant differences on
     \end{tabular}
 \end{table}
 
+\pagebreak
 Pairwise comparisons at $N$ = 500 confirmed the clear hierarchical structure among populations, as seen in Figure~\ref{fig:rq2n}. Price-Maximalist was separated from every other population on nearly every metric with $r_{rb} = \pm 1.0$. The exception was PAR, where two comparisons narrowly fell short of perfect separation ($r_{rb} = -0.998$ against Habitual and $r_{rb} = 0.996$ against Social-Maximalist). Social-Maximalist showed similarly strong separation on cost, flexibility, and adjustment metrics. On PAR, however, it was hardly distinguishable from the Habitual and Tipping populations ($r_{rb} = 0.167$ and $0.311$ respectively, both $p_{\text{Bonferroni}} = 1.0$). Among the four plausible compositions, two pairs were not significantly different on EMD after Bonferroni correction: Habitual versus Tipping, and Balanced versus Progressive. These non-significant pairs show two connected patterns. First, as seen in Habitual versus Tipping, a price-responsive minority of 5\% is insufficient to push social agents into meaningful system-changing schedule adjustment, regardless of their proportion in the population. Second, the Balanced versus Progressive comparison suggests that a sufficiently large price-responsive share has the ability to pull social agents toward a comparable level of aggregate load deformation. For the full pairwise comparison table, refer to the repository \autocite{geschiere_electricity_thesis_andrey_geschiere_csai_2026}.
 
 \begin{figure}
