@@ -5,7 +5,7 @@
 ## Overview
 
 An agent-based model (ABM) of residential electricity demand under a variable-priced
-Western-European grid. The model simulates a population of heterogeneous households
+Western European grid. The model simulates a population of heterogeneous households
 over a self defined period at 15-minute granularity. Each household is built up from
 appliance-level usage and is assigned one of three behavioral architectures:
 
@@ -67,7 +67,7 @@ solar-elasticity factor calibrated on the OpenSTEF Liander 2024 dataset.
    ```
 
 3. **Unzip the pre-built networks.**
-   `networks.json` was too large to commit directly, so it's zipped as
+   `networks.json` was too large to put in the repository directly, so it's zipped as
    `Network_Zipped.zip`. Unzip it and place `networks.json` in the project root:
    ```bash
    unzip Network_Zipped.zip
@@ -75,7 +75,7 @@ solar-elasticity factor calibrated on the OpenSTEF Liander 2024 dataset.
 
 4. **(Optional) Regenerate `networks.json` yourself.**
    `groundwork/make_network.py` rebuilds the full set of networks for
-   N ∈ {50, 100, ..., 1000} with five variants each {a, b, c, d, e}. This takes a long time
+   N = {50, 100, ..., 1000} with five variants each {a, b, c, d, e}. This takes a long time
    (up to a day on a single machine) and is not required if you use the
    unzipped file from step 3.
 
