@@ -52,7 +52,7 @@ solar-elasticity factor calibrated on the OpenSTEF Liander 2024 dataset.
 └── 📁 project_report            # LaTeX backup of the thesis
 ```
 
-> The notebooks in `analysis/` are working notebooks they generate the figures
+> The notebooks in `analysis/` are working notebooks, they generate the figures
 > and statistics used in the thesis. But note that the intermediate
 > reasoning, and personal notes are NOT final and outdated.
 > Everything regarding true and relevant analysis can be found in the thesis itself  
