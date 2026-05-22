@@ -40,16 +40,15 @@ solar-elasticity factor calibrated on the OpenSTEF Liander 2024 dataset.
 │   └── 📁 price_model_baselines # EPEX baseline and solar elasticity computation
 │
 ├── 📁 analysis                  # notebooks producing all thesis figures and stats
-│   ├── 📄 qualitativeanalysis.ipynb  # qualitative analysis (Section 5.1)
-│   ├── 📄 RQ1.ipynb             # within-population group differences (RQ1)
-│   ├── 📄 RQ2.ipynb             # system-level composition effects (RQ2)
-│   ├── 📁 datagenerators        # scripts that produce the cached results
-│   │   ├── 📄 datagenerator.ipynb     # main grid runner
-│   │   ├── 📄 RQ1figgen.ipynb         # cost-comfort figure data
-│   │   └── 📄 RQ2fig1gen.ipynb        # day-29 aggregate curves
-│   ├── 📁 results               # cached outputs from the datagenerators
-│
-└── 📁 project_report            # LaTeX backup of the thesis
+    ├── 📄 qualitativeanalysis.ipynb  # qualitative analysis (Section 5.1)
+    ├── 📄 RQ1.ipynb             # within-population group differences (RQ1)
+    ├── 📄 RQ2.ipynb             # system-level composition effects (RQ2)
+    ├── 📁 datagenerators        # scripts that produce the cached results
+    │   ├── 📄 datagenerator.ipynb     # main grid runner
+    │   ├── 📄 RQ1figgen.ipynb         # cost-comfort figure data
+    │   └── 📄 RQ2fig1gen.ipynb        # day-29 aggregate curves
+    └── 📁 results               # cached outputs from the datagenerators
+
 ```
 
 > The notebooks in `analysis/` are working notebooks, they generate the figures
